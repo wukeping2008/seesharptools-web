@@ -394,9 +394,43 @@ const aiComponents = reactive([
 ])
 
 function downloadComponent(component: any) {
-  const code = '<template>\n  <div class="component-container">\n    <!-- ' + component.description + ' -->\n    <div class="component-content">\n      <!-- 控件实现 -->\n    </div>\n  </div>\n</template>\n\n<script setup lang="ts">\nimport { ref, reactive } from \'vue\'\n\n// 控件属性\nconst props = defineProps<{\n  // 定义属性\n}>()\n\n// 控件事件\nconst emit = defineEmits<{\n  // 定义事件\n}>()\n\n// 控件状态\nconst state = reactive({\n  // 状态数据\n})\n</script>\n\n<style lang="scss" scoped>\n.component-container {\n  /* 控件样式 */\n}\n</style>'
+  const componentCode = [
+    '<template>',
+    '  <div class="component-container">',
+    '    <!-- ' + component.description + ' -->',
+    '    <div class="component-content">',
+    '      <!-- 控件实现 -->',
+    '    </div>',
+    '  </div>',
+    '</template>',
+    '',
+    '<script setup lang="ts">',
+    'import { ref, reactive } from "vue"',
+    '',
+    '// 控件属性',
+    'const props = defineProps<{',
+    '  // 定义属性',
+    '}>()',
+    '',
+    '// 控件事件',
+    'const emit = defineEmits<{',
+    '  // 定义事件',
+    '}>()',
+    '',
+    '// 控件状态',
+    'const state = reactive({',
+    '  // 状态数据',
+    '})',
+    '</script>',
+    '',
+    '<style lang="scss" scoped>',
+    '.component-container {',
+    '  /* 控件样式 */',
+    '}',
+    '</style>'
+  ].join('\n')
 
-  const blob = new Blob([code], { type: 'text/plain;charset=utf-8' })
+  const blob = new Blob([componentCode], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -410,16 +444,36 @@ function downloadComponent(component: any) {
 }
 
 function downloadDoc(item: any) {
-  const doc = '# ' + item.name + '\n\n' +
-    '## 概述\n' + (item.description || '详细的使用说明和API文档') + '\n\n' +
-    '## 安装\n```bash\nnpm install seesharptools-vue\n```\n\n' +
-    '## 基础使用\n```vue\n<template>\n  <ComponentName />\n</template>\n\n' +
-    '<script setup lang="ts">\nimport { ComponentName } from "seesharptools-vue"\n' +
-    '</script>\n```\n\n' +
-    '## API参考\n详细的API文档和使用示例\n\n' +
-    '## 许可证\nMIT License'
+  const docContent = [
+    '# ' + item.name,
+    '',
+    '## 概述',
+    item.description || '详细的使用说明和API文档',
+    '',
+    '## 安装',
+    '```bash',
+    'npm install seesharptools-vue',
+    '```',
+    '',
+    '## 基础使用',
+    '```vue',
+    '<template>',
+    '  <ComponentName />',
+    '</template>',
+    '',
+    '<script setup lang="ts">',
+    'import { ComponentName } from "seesharptools-vue"',
+    '</script>',
+    '```',
+    '',
+    '## API参考',
+    '详细的API文档和使用示例',
+    '',
+    '## 许可证',
+    'MIT License'
+  ].join('\n')
 
-  const blob = new Blob([doc], { type: 'text/markdown;charset=utf-8' })
+  const blob = new Blob([docContent], { type: 'text/markdown;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -442,16 +496,21 @@ function downloadCustomPackage() {
     return
   }
   
-  const content = '# SeeSharpTools Web 自定义控件包\n\n' +
-    '## 包含的控件\n' +
-    selectedComponents.value.map(name => '- ' + name).join('\n') + '\n\n' +
-    '## 使用说明\n' +
-    '1. 下载控件文件\n' +
-    '2. 复制到项目的 components 目录\n' +
-    '3. 在需要的地方导入使用\n\n' +
+  const packageContent = [
+    '# SeeSharpTools Web 自定义控件包',
+    '',
+    '## 包含的控件',
+    ...selectedComponents.value.map(name => '- ' + name),
+    '',
+    '## 使用说明',
+    '1. 下载控件文件',
+    '2. 复制到项目的 components 目录',
+    '3. 在需要的地方导入使用',
+    '',
     '生成时间: ' + new Date().toLocaleString()
+  ].join('\n')
 
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+  const blob = new Blob([packageContent], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -471,13 +530,25 @@ function downloadProject() {
 }
 
 function downloadGuide() {
-  const guide = '# SeeSharpTools Web 快速开始指南\n\n' +
-    '## 安装\n```bash\nnpm install seesharptools-vue\n```\n\n' +
-    '## 基础使用\n详细的使用说明...\n\n' +
-    '## 配置\n配置说明...\n\n' +
-    '## 示例\n示例代码...'
+  const guideContent = [
+    '# SeeSharpTools Web 快速开始指南',
+    '',
+    '## 安装',
+    '```bash',
+    'npm install seesharptools-vue',
+    '```',
+    '',
+    '## 基础使用',
+    '详细的使用说明...',
+    '',
+    '## 配置',
+    '配置说明...',
+    '',
+    '## 示例',
+    '示例代码...'
+  ].join('\n')
 
-  const blob = new Blob([guide], { type: 'text/markdown;charset=utf-8' })
+  const blob = new Blob([guideContent], { type: 'text/markdown;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -491,12 +562,20 @@ function downloadGuide() {
 }
 
 function downloadApiDoc() {
-  const apiDoc = '# SeeSharpTools Web API参考文档\n\n' +
-    '## API概述\n详细的API接口文档...\n\n' +
-    '## 组件API\n各组件的API说明...\n\n' +
-    '## 事件API\n事件处理说明...'
+  const apiDocContent = [
+    '# SeeSharpTools Web API参考文档',
+    '',
+    '## API概述',
+    '详细的API接口文档...',
+    '',
+    '## 组件API',
+    '各组件的API说明...',
+    '',
+    '## 事件API',
+    '事件处理说明...'
+  ].join('\n')
 
-  const blob = new Blob([apiDoc], { type: 'text/markdown;charset=utf-8' })
+  const blob = new Blob([apiDocContent], { type: 'text/markdown;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
