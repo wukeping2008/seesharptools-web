@@ -1,0 +1,406 @@
+// 全局样式重置
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  color: #2c3e50;
+  background: #f5f7fa;
+}
+
+// 测试测量仪器专用样式变量
+:root {
+  // 主色调 - 科学蓝
+  --primary-color: #2E86AB;
+  --primary-light: #4A9BC7;
+  --primary-dark: #1F5F7F;
+  
+  // 辅助色
+  --secondary-color: #A23B72;
+  --accent-color: #F18F01;
+  --warning-color: #C73E1D;
+  
+  // 中性色
+  --background-color: #F5F5F5;
+  --surface-color: #FFFFFF;
+  --text-primary: #2C3E50;
+  --text-secondary: #6B7280;
+  --border-color: #E5E7EB;
+  
+  // 仪器专用色彩
+  --instrument-bg: rgba(255, 255, 255, 0.95);
+  --instrument-border: rgba(46, 134, 171, 0.2);
+  --instrument-shadow: rgba(0, 0, 0, 0.1);
+  
+  // 数值显示色彩
+  --digital-value: #2E86AB;
+  --digital-unit: #6B7280;
+  --digital-bg: #F9FAFB;
+  
+  // 状态色彩
+  --status-normal: #10B981;
+  --status-warning: #F59E0B;
+  --status-error: #EF4444;
+  --status-info: #3B82F6;
+}
+
+// 通用工具类
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-column { flex-direction: column; }
+
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+
+.p-1 { padding: 0.25rem; }
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 0.75rem; }
+.p-4 { padding: 1rem; }
+
+// 仪器控件通用样式
+.instrument-control {
+  background: var(--instrument-bg);
+  border: 1px solid var(--instrument-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--instrument-shadow);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 12px var(--instrument-shadow);
+    transform: translateY(-1px);
+  }
+}
+
+.instrument-panel {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.instrument-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.instrument-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+// 数字显示样式
+.digital-display {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: var(--digital-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px 12px;
+  text-align: center;
+  
+  .value {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--digital-value);
+    line-height: 1;
+  }
+  
+  .unit {
+    font-size: 14px;
+    color: var(--digital-unit);
+    margin-left: 4px;
+  }
+}
+
+// 状态指示器样式
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  
+  &.normal {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--status-normal);
+  }
+  
+  &.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--status-warning);
+  }
+  
+  &.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--status-error);
+  }
+  
+  &.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--status-info);
+  }
+  
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+// 控件网格布局
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.control-item {
+  @extend .instrument-control;
+  padding: 20px;
+  text-align: center;
+  
+  .control-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+  }
+  
+  .control-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+}
+
+// 专业控件通用样式
+.professional-control {
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+  
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 0 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+// 图表容器样式
+.chart-container {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  
+  &.fullscreen {
+    height: 80vh;
+  }
+}
+
+// 控制面板样式
+.control-panel {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    label {
+      min-width: 80px;
+      font-weight: 500;
+      color: #606266;
+    }
+  }
+}
+
+// 示例页面布局
+.example-page {
+  .page-header {
+    margin-bottom: 24px;
+    
+    h1 {
+      color: #303133;
+      margin-bottom: 8px;
+    }
+    
+    .description {
+      color: #606266;
+      font-size: 14px;
+    }
+  }
+  
+  .example-section {
+    margin-bottom: 32px;
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #303133;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #409eff;
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .controls-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  
+  .instrument-panel {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .control-item {
+    padding: 16px;
+  }
+  
+  .control-panel {
+    .control-group {
+      flex-direction: column;
+      align-items: flex-start;
+      
+      label {
+        min-width: auto;
+        margin-bottom: 4px;
+      }
+    }
+  }
+  
+  .chart-container {
+    height: 300px;
+  }
+}
+
+// Element Plus 样式覆盖
+.el-card {
+  border: 1px solid var(--instrument-border);
+  box-shadow: 0 2px 8px var(--instrument-shadow);
+  
+  .el-card__header {
+    background: var(--instrument-bg);
+    border-bottom: 1px solid var(--instrument-border);
+  }
+}
+
+.el-button {
+  &.el-button--primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    
+    &:hover {
+      background-color: var(--primary-light);
+      border-color: var(--primary-light);
+    }
+  }
+}
+
+// 动画效果
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+  
+  &:hover {
+    background: var(--primary-dark);
+  }
+}
+
+// 工具提示样式
+.tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  max-width: 200px;
+  word-wrap: break-word;
+}

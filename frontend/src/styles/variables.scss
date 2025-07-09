@@ -1,0 +1,53 @@
+// 测试测量仪器专用样式变量
+
+// 主色调 - 科学蓝
+$primary-color: #2E86AB;
+$primary-light: #4A9BC7;
+$primary-dark: #1F5F7F;
+
+// 辅助色
+$secondary-color: #A23B72;
+$accent-color: #F18F01;
+$warning-color: #C73E1D;
+
+// 中性色
+$background-color: #F5F5F5;
+$surface-color: #FFFFFF;
+$text-primary: #2C3E50;
+$text-secondary: #6B7280;
+$border-color: #E5E7EB;
+
+// 仪器专用色彩
+$instrument-bg: rgba(255, 255, 255, 0.95);
+$instrument-border: rgba(46, 134, 171, 0.2);
+$instrument-shadow: rgba(0, 0, 0, 0.1);
+
+// 数值显示色彩
+$digital-value: #2E86AB;
+$digital-unit: #6B7280;
+$digital-bg: #F9FAFB;
+
+// 状态色彩
+$status-normal: #10B981;
+$status-warning: #F59E0B;
+$status-error: #EF4444;
+$status-info: #3B82F6;
+
+// 字体
+$font-family-base: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+$font-family-mono: 'Consolas', 'Monaco', monospace;
+
+// 尺寸
+$border-radius-base: 8px;
+$border-radius-large: 12px;
+$border-radius-small: 4px;
+
+// 阴影
+$shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
+$shadow-medium: 0 2px 8px rgba(0, 0, 0, 0.1);
+$shadow-heavy: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+// 动画
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.2s ease;
+$transition-slow: all 0.5s ease;
