@@ -4,7 +4,7 @@
       "Name": "JY5500",
       "Type": "CSharpDll",
       "Enabled": true,
-      "DriverPath": "C:\\SeeSharp\\JYTEK\\Hardware\\DAQ\\JY5500\\Bin\\JY5500.dll",
+      "DriverPath": "Drivers/JY5500.dll",
       "DeviceModel": "JY5500",
       "Description": "简仪科技JY5500系列多功能数据采集卡驱动",
       "SupportedDevices": [

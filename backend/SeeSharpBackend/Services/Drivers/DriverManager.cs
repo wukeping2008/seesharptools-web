@@ -162,6 +162,7 @@ namespace SeeSharpBackend.Services.Drivers
             return type switch
             {
                 DriverType.CSharpDll when name == "MockDriver" => _serviceProvider.GetRequiredService<MockDriverAdapter>(),
+                DriverType.CSharpDll when name == "JY5500" => _serviceProvider.GetRequiredService<JY5500DllDriverAdapter>(),
                 DriverType.CSharpDll => _serviceProvider.GetRequiredService<CSharpDllDriverAdapter>(),
                 _ => throw new NotSupportedException($"不支持的驱动类型: {type}")
             };
