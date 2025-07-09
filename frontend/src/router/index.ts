@@ -3,11 +3,11 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
   // 首页
-  {
-    path: '/',
-    name: 'Home',
-    component: () => import('../views/HomeView.vue')
-  },
+    {
+      path: '/download',
+      name: 'Download',
+      component: () => import('../views/DownloadView.vue')
+    },
   {
     path: '/backend-integration-test',
     name: 'BackendIntegrationTest',
