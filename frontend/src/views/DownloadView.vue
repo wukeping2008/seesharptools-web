@@ -413,9 +413,9 @@ function downloadDoc(item: any) {
   const doc = '# ' + item.name + '\n\n' +
     '## 概述\n' + (item.description || '详细的使用说明和API文档') + '\n\n' +
     '## 安装\n```bash\nnpm install seesharptools-vue\n```\n\n' +
-    '## 基础使用\n```vue\n<template>\n  <ComponentName :config="config" />\n</template>\n\n' +
-    '<script setup lang="ts">\nimport { ComponentName } from \'seesharptools-vue\'\n\n' +
-    'const config = reactive({\n  // 配置选项\n})\n</script>\n```\n\n' +
+    '## 基础使用\n```vue\n<template>\n  <ComponentName />\n</template>\n\n' +
+    '<script setup lang="ts">\nimport { ComponentName } from "seesharptools-vue"\n' +
+    '</script>\n```\n\n' +
     '## API参考\n详细的API文档和使用示例\n\n' +
     '## 许可证\nMIT License'
 
