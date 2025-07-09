@@ -11,12 +11,10 @@
     </div>
 
     <div class="download-content">
-      <!-- 控件下载区域 -->
       <section class="download-section">
         <h2 class="section-title">控件下载</h2>
         
         <el-tabs v-model="activeTab" type="border-card">
-          <!-- 基础控件 -->
           <el-tab-pane label="基础控件" name="basic">
             <div class="components-grid">
               <div 
@@ -50,7 +48,6 @@
             </div>
           </el-tab-pane>
 
-          <!-- 高性能图表 -->
           <el-tab-pane label="高性能图表" name="charts">
             <div class="components-grid">
               <div 
@@ -84,7 +81,6 @@
             </div>
           </el-tab-pane>
 
-          <!-- 模块仪器 -->
           <el-tab-pane label="模块仪器" name="instruments">
             <div class="components-grid">
               <div 
@@ -118,7 +114,6 @@
             </div>
           </el-tab-pane>
 
-          <!-- AI智能控件 -->
           <el-tab-pane label="AI智能控件" name="ai">
             <div class="components-grid">
               <div 
@@ -154,7 +149,6 @@
         </el-tabs>
       </section>
 
-      <!-- 批量下载区域 -->
       <section class="download-section">
         <h2 class="section-title">批量下载</h2>
         
@@ -173,30 +167,6 @@
                     <h4>基础控件</h4>
                     <el-checkbox 
                       v-for="component in basicComponents" 
-                      :key="component.name"
-                      :label="component.name"
-                      :value="component.name"
-                    >
-                      {{ component.name }}
-                    </el-checkbox>
-                  </div>
-                  
-                  <div class="selector-category">
-                    <h4>高性能图表</h4>
-                    <el-checkbox 
-                      v-for="component in chartComponents" 
-                      :key="component.name"
-                      :label="component.name"
-                      :value="component.name"
-                    >
-                      {{ component.name }}
-                    </el-checkbox>
-                  </div>
-                  
-                  <div class="selector-category">
-                    <h4>模块仪器</h4>
-                    <el-checkbox 
-                      v-for="component in instrumentComponents" 
                       :key="component.name"
                       :label="component.name"
                       :value="component.name"
@@ -223,31 +193,6 @@
 
           <el-card>
             <template #header>
-              <h3>📦 预设下载包</h3>
-            </template>
-            
-            <div class="preset-packages">
-              <div 
-                v-for="preset in presetPackages" 
-                :key="preset.name"
-                class="preset-item"
-              >
-                <div class="preset-info">
-                  <h4>{{ preset.name }}</h4>
-                  <p>{{ preset.description }}</p>
-                </div>
-                <div class="preset-actions">
-                  <el-button type="primary" @click="downloadPresetPackage(preset)">
-                    <el-icon><Download /></el-icon>
-                    下载
-                  </el-button>
-                </div>
-              </div>
-            </div>
-          </el-card>
-
-          <el-card>
-            <template #header>
               <h3>🚀 完整项目下载</h3>
             </template>
             
@@ -256,7 +201,7 @@
                 <div class="option-item">
                   <h4>前端控件库</h4>
                   <p>Vue 3 + TypeScript + 所有控件源码</p>
-                  <el-button type="primary" @click="downloadProject('frontend')">
+                  <el-button type="primary" @click="downloadProject">
                     <el-icon><Download /></el-icon>
                     下载前端项目
                   </el-button>
@@ -265,7 +210,7 @@
                 <div class="option-item">
                   <h4>完整解决方案</h4>
                   <p>前端 + 后端 + 文档 + 示例</p>
-                  <el-button type="primary" @click="downloadProject('full')">
+                  <el-button type="primary" @click="downloadProject">
                     <el-icon><Download /></el-icon>
                     下载完整项目
                   </el-button>
@@ -276,7 +221,6 @@
         </div>
       </section>
 
-      <!-- 使用文档区域 -->
       <section class="download-section">
         <h2 class="section-title">使用文档</h2>
         
@@ -306,32 +250,6 @@
               </el-button>
             </div>
           </el-card>
-
-          <el-card>
-            <template #header>
-              <h3>🎯 最佳实践</h3>
-            </template>
-            <div class="doc-content">
-              <p>控件使用的最佳实践和设计模式</p>
-              <el-button type="primary" @click="downloadDoc({ name: '最佳实践', type: 'practices' })">
-                <el-icon><Download /></el-icon>
-                下载文档
-              </el-button>
-            </div>
-          </el-card>
-
-          <el-card>
-            <template #header>
-              <h3>🔧 开发指南</h3>
-            </template>
-            <div class="doc-content">
-              <p>自定义控件开发和扩展指南</p>
-              <el-button type="primary" @click="downloadDoc({ name: '开发指南', type: 'development' })">
-                <el-icon><Download /></el-icon>
-                下载文档
-              </el-button>
-            </div>
-          </el-card>
         </div>
       </section>
     </div>
@@ -348,7 +266,6 @@ const router = useRouter()
 const activeTab = ref('basic')
 const selectedComponents = ref<string[]>([])
 
-// 基础控件数据
 const basicComponents = reactive([
   {
     name: '数字显示器',
@@ -387,7 +304,6 @@ const basicComponents = reactive([
   }
 ])
 
-// 高性能图表数据
 const chartComponents = reactive([
   {
     name: '高性能StripChart',
@@ -426,7 +342,6 @@ const chartComponents = reactive([
   }
 ])
 
-// 模块仪器数据
 const instrumentComponents = reactive([
   {
     name: '数字示波器',
@@ -465,7 +380,6 @@ const instrumentComponents = reactive([
   }
 ])
 
-// AI智能控件数据
 const aiComponents = reactive([
   {
     name: 'AI控件生成器',
@@ -479,31 +393,6 @@ const aiComponents = reactive([
   }
 ])
 
-// 预设包数据
-const presetPackages = reactive([
-  {
-    name: '基础测量包',
-    description: '包含基础测量所需的核心控件',
-    components: ['数字显示器', '线性仪表', '温度计', '圆形仪表', 'LED指示器']
-  },
-  {
-    name: '信号分析包',
-    description: '专业信号分析和频谱分析工具',
-    components: ['FFT频谱分析', '频谱分析仪', '高性能StripChart', '波形图表', '信号发生器']
-  },
-  {
-    name: '完整仪器包',
-    description: '所有专业仪器控件的完整集合',
-    components: ['数字示波器', '信号发生器', '数字万用表', '温度采集卡', 'DIO控制卡', '数据采集卡']
-  },
-  {
-    name: 'AI智能包',
-    description: 'AI驱动的智能控件生成和预览工具',
-    components: ['AI控件生成器', 'AI控件预览器']
-  }
-])
-
-// 方法实现
 const downloadComponent = (component: any) => {
   const className = component.name.toLowerCase().replace(/\s+/g, '-')
   const code = '<!-- ' + component.name + ' -->\n' +
@@ -603,30 +492,6 @@ const downloadCustomPackage = () => {
   URL.revokeObjectURL(url)
   
   ElMessage.success('自定义包下载完成 (' + selectedComponents.value.length + '个控件)')
-}
-
-const downloadPresetPackage = (preset: any) => {
-  const content = '# SeeSharpTools Web ' + preset.name + '\n\n' +
-    '## 包描述\n' + preset.description + '\n\n' +
-    '## 包含的控件\n' +
-    preset.components.map((name: string) => '- ' + name).join('\n') + '\n\n' +
-    '## 使用说明\n' +
-    '1. 下载控件包\n' +
-    '2. 解压到项目目录\n' +
-    '3. 按照文档说明使用\n\n' +
-    '生成时间: ' + new Date().toLocaleString()
-
-  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'SeeSharpTools-' + preset.name + '.txt'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-  
-  ElMessage.success(preset.name + ' 下载完成')
 }
 
 const downloadProject = () => {
@@ -766,34 +631,6 @@ const downloadProject = () => {
     
     .batch-actions {
       text-align: center;
-    }
-  }
-  
-  .preset-packages {
-    .preset-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      margin-bottom: 12px;
-      
-      .preset-info {
-        flex: 1;
-        
-        h4 {
-          margin: 0 0 8px 0;
-          font-size: 16px;
-          font-weight: 600;
-        }
-        
-        p {
-          margin: 0;
-          color: var(--text-secondary);
-          font-size: 14px;
-        }
-      }
     }
   }
   
