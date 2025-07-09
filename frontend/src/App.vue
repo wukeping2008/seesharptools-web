@@ -100,6 +100,12 @@
                   </router-link>
                 </el-dropdown-item>
                 <el-dropdown-item>
+                  <router-link to="/spectrum" class="dropdown-link">
+                    <el-icon><DataLine /></el-icon>
+                    <span>频谱分析仪</span>
+                  </router-link>
+                </el-dropdown-item>
+                <el-dropdown-item>
                   <router-link to="/advanced-easy-chart-test" class="dropdown-link">
                     <el-icon><DataAnalysis /></el-icon>
                     <span>高级数学分析</span>
@@ -139,11 +145,11 @@
             </template>
           </el-dropdown>
           
-          <!-- 专业仪器 -->
+          <!-- 模块仪器 -->
           <el-dropdown class="nav-dropdown" trigger="hover">
             <div class="nav-item dropdown-trigger">
               <el-icon><Monitor /></el-icon>
-              <span>专业仪器</span>
+              <span>模块仪器</span>
               <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
             </div>
             <template #dropdown>

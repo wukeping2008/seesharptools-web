@@ -275,6 +275,7 @@ const frontendCategories = reactive([
     subcategories: [
       { name: '高性能StripChart', path: '/enhanced-stripchart-test' },
       { name: 'FFT频谱分析', path: '/spectrum-chart-test' },
+      { name: '频谱分析仪', path: '/spectrum' },
       { name: '高级数学分析', path: '/advanced-easy-chart-test' },
       { name: '专业测量工具', path: '/professional-easy-chart-test' },
       { name: '双Y轴图表', path: '/dual-axis-easychart-test' },
