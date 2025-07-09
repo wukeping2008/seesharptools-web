@@ -1468,3 +1468,4 @@ watch(() => config.channels, () => {
     height: 12px;
   }
 }
+</style>

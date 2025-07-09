@@ -179,7 +179,6 @@
               <div class="category-content">
                 <h4 class="category-title">{{ category.title }}</h4>
                 <p class="category-description">{{ category.description }}</p>
-                <span class="category-status">{{ category.status }}</span>
               </div>
             </router-link>
           </div>
@@ -231,7 +230,15 @@ const frontendCategories = [
     description: '仪表、指示器、控制器等基础界面组件',
     icon: 'DataAnalysis',
     path: '/instruments',
-    count: 15
+    count: 15,
+    subcategories: [
+      { name: '仪表控件', path: '/instruments' },
+      { name: '指示控件', path: '/indicators' },
+      { name: '控制控件', path: '/controls' },
+      { name: '数字显示器', path: '/digital-display-test' },
+      { name: '开关测试', path: '/switch-test' },
+      { name: '按钮阵列', path: '/button-array-test' }
+    ]
   },
   {
     id: 2,
@@ -239,15 +246,33 @@ const frontendCategories = [
     description: 'StripChart、FFT频谱分析、专业测量工具',
     icon: 'TrendCharts',
     path: '/enhanced-stripchart-test',
-    count: 8
+    count: 8,
+    subcategories: [
+      { name: '高性能StripChart', path: '/enhanced-stripchart-test' },
+      { name: 'FFT频谱分析', path: '/spectrum-chart-test' },
+      { name: '高级数学分析', path: '/advanced-easy-chart-test' },
+      { name: '专业测量工具', path: '/professional-easy-chart-test' },
+      { name: '双Y轴图表', path: '/dual-axis-easy-chart-test' },
+      { name: '波形图表', path: '/waveform' },
+      { name: '条带图', path: '/stripchart' },
+      { name: '增强图表', path: '/enhanced-charts' }
+    ]
   },
   {
     id: 3,
     title: '专业仪器',
     description: '示波器、万用表、信号发生器等专业仪器控件',
     icon: 'Monitor',
-    path: '/oscilloscope-test',
-    count: 6
+    path: '/instruments',
+    count: 6,
+    subcategories: [
+      { name: '数字示波器', path: '/oscilloscope-test' },
+      { name: '数字万用表', path: '/digital-multimeter-test' },
+      { name: '信号发生器', path: '/signal-generator-test' },
+      { name: '温度采集卡', path: '/temperature-acquisition-card-test' },
+      { name: 'DIO控制卡', path: '/dio-card-test' },
+      { name: '数据采集卡', path: '/data-acquisition' }
+    ]
   },
   {
     id: 4,
@@ -255,7 +280,10 @@ const frontendCategories = [
     description: '基于自然语言的AI控件生成系统',
     icon: 'Cpu',
     path: '/ai-control-generator-test',
-    count: 1
+    count: 1,
+    subcategories: [
+      { name: 'AI控件生成器', path: '/ai-control-generator-test' }
+    ]
   }
 ]
 
@@ -263,35 +291,31 @@ const frontendCategories = [
 const backendCategories = [
   {
     id: 1,
-    title: '前后端集成测试',
-    description: '测试前端与后端API和SignalR的完整集成功能',
+    title: '前后端集成',
+    description: '前端与后端API和SignalR的完整集成功能',
     icon: 'Link',
-    path: '/backend-integration-test',
-    status: '✅ 已完成'
+    path: '/backend-integration-test'
   },
   {
     id: 2,
-    title: '数据存储和回放',
+    title: '数据存储回放',
     description: '高性能数据存储、历史数据查询、数据回放系统',
     icon: 'DataAnalysis',
-    path: '/data-storage-test',
-    status: '✅ 已完成'
+    path: '/data-storage-test'
   },
   {
     id: 3,
     title: '硬件驱动管理',
     description: 'MISD标准化接口层、驱动管理、设备发现',
     icon: 'Cpu',
-    path: '/backend-integration-test',
-    status: '✅ 已完成'
+    path: '/backend-integration-test'
   },
   {
     id: 4,
     title: '实时数据采集',
     description: '多线程数据采集引擎、SignalR实时通信',
     icon: 'TrendCharts',
-    path: '/backend-integration-test',
-    status: '✅ 已完成'
+    path: '/backend-integration-test'
   }
 ]
 
