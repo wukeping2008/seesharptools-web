@@ -230,9 +230,9 @@
             <span>示例</span>
           </router-link>
           
-          <router-link to="/documentation" class="nav-item" active-class="active">
-            <el-icon><Document /></el-icon>
-            <span>文档</span>
+          <router-link to="/download" class="nav-item" active-class="active">
+            <el-icon><Download /></el-icon>
+            <span>下载</span>
           </router-link>
         </nav>
         
@@ -280,7 +280,7 @@
 import { 
   Monitor, House, DataAnalysis, Warning, Setting, 
   TrendCharts, DataLine, Grid, Link, Document,
-  Timer, Cpu, ArrowDown
+  Timer, Cpu, ArrowDown, Download
 } from '@element-plus/icons-vue'
 
 const openGitHub = () => {

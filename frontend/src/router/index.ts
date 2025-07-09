@@ -3,11 +3,16 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: Array<RouteRecordRaw> = [
   // 首页
-    {
-      path: '/download',
-      name: 'Download',
-      component: () => import('../views/DownloadView.vue')
-    },
+  {
+    path: '/',
+    name: 'Home',
+    component: () => import('../views/HomeView.vue')
+  },
+  {
+    path: '/download',
+    name: 'Download',
+    component: () => import('../views/DownloadView.vue')
+  },
   {
     path: '/backend-integration-test',
     name: 'BackendIntegrationTest',
@@ -183,11 +188,6 @@ const routes: Array<RouteRecordRaw> = [
       name: 'BackendIntegrationTest',
       component: () => import('@/views/BackendIntegrationTest.vue')
     },
-    {
-      path: '/documentation',
-      name: 'Documentation',
-      component: () => import('@/views/DocumentationView.vue')
-    }
 ]
 
 const router = createRouter({
