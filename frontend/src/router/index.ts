@@ -167,6 +167,11 @@ const routes: Array<RouteRecordRaw> = [
       path: '/ai-control-generator-test',
       name: 'AIControlGeneratorTest',
       component: () => import('@/views/AIControlGeneratorTest.vue')
+    },
+    {
+      path: '/backend-integration-test',
+      name: 'BackendIntegrationTest',
+      component: () => import('@/views/BackendIntegrationTest.vue')
     }
 ]
 

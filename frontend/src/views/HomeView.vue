@@ -452,6 +452,14 @@ const categories = [
     icon: 'Cpu',
     path: '/ai-control-generator-test',
     count: 1
+  },
+  {
+    id: 20,
+    title: '前后端集成测试',
+    description: '测试前端与后端API和SignalR的完整集成功能',
+    icon: 'Link',
+    path: '/backend-integration-test',
+    count: 1
   }
 ]
 
