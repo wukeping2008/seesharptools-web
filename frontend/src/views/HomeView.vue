@@ -460,6 +460,14 @@ const categories = [
     icon: 'Link',
     path: '/backend-integration-test',
     count: 1
+  },
+  {
+    id: 21,
+    title: '数据存储和回放系统',
+    description: '高性能数据存储、历史数据查询、数据回放等功能测试',
+    icon: 'DataAnalysis',
+    path: '/data-storage-test',
+    count: 1
   }
 ]
 

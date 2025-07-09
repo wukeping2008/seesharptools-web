@@ -6,7 +6,17 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('@/views/HomeView.vue')
+    component: () => import('../views/HomeView.vue')
+  },
+  {
+    path: '/backend-integration-test',
+    name: 'BackendIntegrationTest',
+    component: () => import('../views/BackendIntegrationTest.vue')
+  },
+  {
+    path: '/data-storage-test',
+    name: 'DataStorageTest',
+    component: () => import('../views/DataStorageTest.vue')
   },
   // 基础控件
   {

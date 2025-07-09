@@ -3,6 +3,7 @@ using SeeSharpBackend.Services.MISD;
 using SeeSharpBackend.Services.Drivers;
 using SeeSharpBackend.Services.DataCompression;
 using SeeSharpBackend.Services.Connection;
+using SeeSharpBackend.Services.DataStorage;
 using SeeSharpBackend.Hubs;
 using Serilog;
 using System.Reflection;
@@ -111,6 +112,10 @@ builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 
 // 注册数据采集引擎
 builder.Services.AddScoped<SeeSharpBackend.Services.DataAcquisition.IDataAcquisitionEngine, SeeSharpBackend.Services.DataAcquisition.DataAcquisitionEngine>();
+
+// 注册数据存储服务
+builder.Services.Configure<DataStorageOptions>(builder.Configuration.GetSection("DataStorage"));
+builder.Services.AddSingleton<IDataStorageService, DataStorageService>();
 
 // 配置AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
