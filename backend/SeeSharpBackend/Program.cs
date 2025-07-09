@@ -109,6 +109,9 @@ builder.Services.AddSingleton<IDataCompressionService, DataCompressionService>()
 // 注册连接管理服务
 builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 
+// 注册数据采集引擎
+builder.Services.AddScoped<SeeSharpBackend.Services.DataAcquisition.IDataAcquisitionEngine, SeeSharpBackend.Services.DataAcquisition.DataAcquisitionEngine>();
+
 // 配置AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
