@@ -132,23 +132,44 @@
           </div>
           
           <div class="module-categories">
-            <router-link 
+            <div 
               v-for="category in frontendCategories" 
               :key="category.id"
-              :to="category.path"
-              class="category-item"
+              class="category-section"
             >
-              <div class="category-icon">
-                <el-icon>
-                  <component :is="category.icon" />
-                </el-icon>
+              <div class="category-header" @click="category.expanded = !category.expanded">
+                <div class="category-icon">
+                  <el-icon>
+                    <component :is="category.icon" />
+                  </el-icon>
+                </div>
+                <div class="category-content">
+                  <h4 class="category-title">{{ category.title }}</h4>
+                  <p class="category-description">{{ category.description }}</p>
+                  <span class="category-count">{{ category.count }}+ 控件</span>
+                </div>
+                <div class="expand-icon">
+                  <el-icon :class="{ rotated: category.expanded }">
+                    <ArrowDown />
+                  </el-icon>
+                </div>
               </div>
-              <div class="category-content">
-                <h4 class="category-title">{{ category.title }}</h4>
-                <p class="category-description">{{ category.description }}</p>
-                <span class="category-count">{{ category.count }}+ 控件</span>
-              </div>
-            </router-link>
+              
+              <transition name="expand">
+                <div v-if="category.expanded" class="subcategory-list">
+                  <router-link 
+                    v-for="subcategory in category.subcategories" 
+                    :key="subcategory.path"
+                    :to="subcategory.path"
+                    class="subcategory-item"
+                  >
+                    <div class="subcategory-dot"></div>
+                    <span class="subcategory-name">{{ subcategory.name }}</span>
+                    <el-icon class="subcategory-arrow"><Right /></el-icon>
+                  </router-link>
+                </div>
+              </transition>
+            </div>
           </div>
         </div>
 
@@ -207,11 +228,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   DataAnalysis, TrendCharts, Setting, Monitor, Link,
-  Warning, Grid, Cpu, DataLine, Timer
+  Warning, Grid, Cpu, DataLine, Timer, ArrowDown, Right
 } from '@element-plus/icons-vue'
 
 // 路由
@@ -223,7 +244,7 @@ const waveformPath = ref('')
 const modulesSection = ref<HTMLElement>()
 
 // 前端控件分类
-const frontendCategories = [
+const frontendCategories = reactive([
   {
     id: 1,
     title: '基础控件',
@@ -231,6 +252,7 @@ const frontendCategories = [
     icon: 'DataAnalysis',
     path: '/instruments',
     count: 15,
+    expanded: false,
     subcategories: [
       { name: '仪表控件', path: '/instruments' },
       { name: '指示控件', path: '/indicators' },
@@ -247,6 +269,7 @@ const frontendCategories = [
     icon: 'TrendCharts',
     path: '/enhanced-stripchart-test',
     count: 8,
+    expanded: false,
     subcategories: [
       { name: '高性能StripChart', path: '/enhanced-stripchart-test' },
       { name: 'FFT频谱分析', path: '/spectrum-chart-test' },
@@ -265,6 +288,7 @@ const frontendCategories = [
     icon: 'Monitor',
     path: '/instruments',
     count: 6,
+    expanded: false,
     subcategories: [
       { name: '数字示波器', path: '/oscilloscope-test' },
       { name: '数字万用表', path: '/digital-multimeter-test' },
@@ -281,11 +305,12 @@ const frontendCategories = [
     icon: 'Cpu',
     path: '/ai-control-generator-test',
     count: 1,
+    expanded: false,
     subcategories: [
       { name: 'AI控件生成器', path: '/ai-control-generator-test' }
     ]
   }
-]
+])
 
 // 后端集成分类
 const backendCategories = [
@@ -926,6 +951,134 @@ onUnmounted(() => {
       display: grid;
       gap: 16px;
       
+      .category-section {
+        border: 1px solid rgba(46, 134, 171, 0.1);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          border-color: rgba(46, 134, 171, 0.2);
+          box-shadow: 0 2px 8px rgba(46, 134, 171, 0.1);
+        }
+        
+        .category-header {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding: 16px;
+          background: rgba(46, 134, 171, 0.05);
+          cursor: pointer;
+          transition: all 0.3s ease;
+          
+          &:hover {
+            background: rgba(46, 134, 171, 0.1);
+          }
+          
+          .category-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            
+            .el-icon {
+              font-size: 20px;
+              color: white;
+            }
+          }
+          
+          .category-content {
+            flex: 1;
+            
+            .category-title {
+              font-size: 16px;
+              font-weight: 600;
+              color: var(--text-primary);
+              margin-bottom: 4px;
+            }
+            
+            .category-description {
+              font-size: 14px;
+              color: var(--text-secondary);
+              line-height: 1.4;
+              margin-bottom: 6px;
+            }
+            
+            .category-count {
+              font-size: 12px;
+              color: var(--primary-color);
+              font-weight: 500;
+            }
+          }
+          
+          .expand-icon {
+            .el-icon {
+              font-size: 16px;
+              color: var(--text-secondary);
+              transition: transform 0.3s ease;
+              
+              &.rotated {
+                transform: rotate(180deg);
+              }
+            }
+          }
+        }
+        
+        .subcategory-list {
+          background: rgba(46, 134, 171, 0.02);
+          border-top: 1px solid rgba(46, 134, 171, 0.1);
+          
+          .subcategory-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(46, 134, 171, 0.05);
+            
+            &:last-child {
+              border-bottom: none;
+            }
+            
+            &:hover {
+              background: rgba(46, 134, 171, 0.08);
+              transform: translateX(4px);
+            }
+            
+            .subcategory-dot {
+              width: 6px;
+              height: 6px;
+              background: var(--primary-color);
+              border-radius: 50%;
+              flex-shrink: 0;
+            }
+            
+            .subcategory-name {
+              flex: 1;
+              font-size: 14px;
+              font-weight: 500;
+            }
+            
+            .subcategory-arrow {
+              font-size: 12px;
+              color: var(--text-secondary);
+              opacity: 0;
+              transition: opacity 0.2s ease;
+            }
+            
+            &:hover .subcategory-arrow {
+              opacity: 1;
+            }
+          }
+        }
+      }
+      
       .category-item {
         display: flex;
         align-items: center;
@@ -1095,6 +1248,25 @@ onUnmounted(() => {
       font-size: 16px;
     }
   }
+}
+
+// 展开/收起动画
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  max-height: 500px;
+  opacity: 1;
 }
 
 // 动画定义
