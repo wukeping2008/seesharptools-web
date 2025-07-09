@@ -1,6 +1,5 @@
 <template>
   <div class="documentation-view">
-    <!-- 文档头部 -->
     <div class="doc-header">
       <div class="header-content">
         <h1 class="doc-title">
@@ -8,35 +7,12 @@
           SeeSharpTools Web 控件文档
         </h1>
         <p class="doc-subtitle">专业测试测量仪器控件使用指南</p>
-        
-        <!-- 快速导航 -->
-        <div class="quick-nav">
-          <el-button-group>
-            <el-button @click="scrollToSection('getting-started')">
-              <el-icon><VideoPlay /></el-icon>
-              快速开始
-            </el-button>
-            <el-button @click="scrollToSection('components')">
-              <el-icon><Grid /></el-icon>
-              控件列表
-            </el-button>
-            <el-button @click="scrollToSection('download')">
-              <el-icon><Download /></el-icon>
-              下载中心
-            </el-button>
-          </el-button-group>
-        </div>
       </div>
     </div>
 
-    <!-- 文档内容 -->
     <div class="doc-content">
-      <!-- 快速开始 -->
-      <section id="getting-started" class="doc-section">
-        <h2 class="section-title">
-          <el-icon><VideoPlay /></el-icon>
-          快速开始
-        </h2>
+      <section class="doc-section">
+        <h2 class="section-title">快速开始</h2>
         
         <div class="getting-started-grid">
           <el-card class="guide-card">
@@ -89,39 +65,20 @@ import { Oscilloscope, SignalGenerator } from 'seesharptools-vue'</code></pre>
         </div>
       </section>
 
-      <!-- 控件列表 -->
-      <section id="components" class="doc-section">
-        <h2 class="section-title">
-          <el-icon><Grid /></el-icon>
-          控件文档
-        </h2>
+      <section class="doc-section">
+        <h2 class="section-title">控件文档</h2>
         
-        <!-- 控件分类 -->
         <div class="components-grid">
-          <div 
-            v-for="category in componentCategories" 
-            :key="category.id"
-            class="category-section"
-          >
-            <h3 class="category-title">
-              <el-icon>
-                <component :is="category.icon" />
-              </el-icon>
-              {{ category.title }}
-            </h3>
+          <div class="category-section">
+            <h3 class="category-title">基础控件</h3>
             
             <div class="components-list">
-              <el-card 
-                v-for="component in category.components" 
-                :key="component.name"
-                class="component-card"
-                shadow="hover"
-              >
+              <el-card class="component-card" shadow="hover">
                 <template #header>
                   <div class="component-header">
-                    <h4>{{ component.name }}</h4>
+                    <h4>数字显示器</h4>
                     <div class="component-actions">
-                      <el-button size="small" @click="downloadComponent(component)">
+                      <el-button size="small" @click="downloadComponent('数字显示器')">
                         <el-icon><Download /></el-icon>
                         下载
                       </el-button>
@@ -130,13 +87,194 @@ import { Oscilloscope, SignalGenerator } from 'seesharptools-vue'</code></pre>
                 </template>
                 
                 <div class="component-content">
-                  <p class="component-description">{{ component.description }}</p>
+                  <p class="component-description">高精度数字显示控件，支持多种数值格式和单位</p>
                   
-                  <!-- 使用示例 -->
                   <div class="component-example">
                     <h5>使用示例</h5>
                     <div class="code-block">
-                      <pre><code>{{ component.example }}</code></pre>
+                      <pre><code>&lt;template&gt;
+  &lt;DigitalDisplay 
+    :value="75.234" 
+    :precision="3"
+    unit="V"
+    @value-change="onValueChange"
+  /&gt;
+&lt;/template&gt;</code></pre>
+                    </div>
+                  </div>
+                </div>
+              </el-card>
+
+              <el-card class="component-card" shadow="hover">
+                <template #header>
+                  <div class="component-header">
+                    <h4>线性仪表</h4>
+                    <div class="component-actions">
+                      <el-button size="small" @click="downloadComponent('线性仪表')">
+                        <el-icon><Download /></el-icon>
+                        下载
+                      </el-button>
+                    </div>
+                  </div>
+                </template>
+                
+                <div class="component-content">
+                  <p class="component-description">线性刻度仪表，适用于压力、温度等物理量显示</p>
+                  
+                  <div class="component-example">
+                    <h5>使用示例</h5>
+                    <div class="code-block">
+                      <pre><code>&lt;template&gt;
+  &lt;LinearGauge 
+    :value="65" 
+    :min="0" 
+    :max="100"
+    orientation="horizontal"
+    unit="°C"
+  /&gt;
+&lt;/template&gt;</code></pre>
+                    </div>
+                  </div>
+                </div>
+              </el-card>
+            </div>
+          </div>
+
+          <div class="category-section">
+            <h3 class="category-title">高性能图表</h3>
+            
+            <div class="components-list">
+              <el-card class="component-card" shadow="hover">
+                <template #header>
+                  <div class="component-header">
+                    <h4>高性能StripChart</h4>
+                    <div class="component-actions">
+                      <el-button size="small" @click="downloadComponent('高性能StripChart')">
+                        <el-icon><Download /></el-icon>
+                        下载
+                      </el-button>
+                    </div>
+                  </div>
+                </template>
+                
+                <div class="component-content">
+                  <p class="component-description">实时数据条带图，支持大数据量高频更新</p>
+                  
+                  <div class="component-example">
+                    <h5>使用示例</h5>
+                    <div class="code-block">
+                      <pre><code>&lt;template&gt;
+  &lt;StripChart 
+    :data="chartData" 
+    :channels="channels"
+    :time-span="10"
+    :update-rate="100"
+    @data-update="onDataUpdate"
+  /&gt;
+&lt;/template&gt;</code></pre>
+                    </div>
+                  </div>
+                </div>
+              </el-card>
+
+              <el-card class="component-card" shadow="hover">
+                <template #header>
+                  <div class="component-header">
+                    <h4>FFT频谱分析</h4>
+                    <div class="component-actions">
+                      <el-button size="small" @click="downloadComponent('FFT频谱分析')">
+                        <el-icon><Download /></el-icon>
+                        下载
+                      </el-button>
+                    </div>
+                  </div>
+                </template>
+                
+                <div class="component-content">
+                  <p class="component-description">快速傅里叶变换频谱分析图表</p>
+                  
+                  <div class="component-example">
+                    <h5>使用示例</h5>
+                    <div class="code-block">
+                      <pre><code>&lt;template&gt;
+  &lt;SpectrumChart 
+    :time-data="signalData" 
+    :fft-size="1024"
+    window-function="hanning"
+    :sample-rate="1000000"
+    @fft-result="onFFTResult"
+  /&gt;
+&lt;/template&gt;</code></pre>
+                    </div>
+                  </div>
+                </div>
+              </el-card>
+            </div>
+          </div>
+
+          <div class="category-section">
+            <h3 class="category-title">模块仪器</h3>
+            
+            <div class="components-list">
+              <el-card class="component-card" shadow="hover">
+                <template #header>
+                  <div class="component-header">
+                    <h4>数字示波器</h4>
+                    <div class="component-actions">
+                      <el-button size="small" @click="downloadComponent('数字示波器')">
+                        <el-icon><Download /></el-icon>
+                        下载
+                      </el-button>
+                    </div>
+                  </div>
+                </template>
+                
+                <div class="component-content">
+                  <p class="component-description">专业数字示波器控件，支持多通道波形显示</p>
+                  
+                  <div class="component-example">
+                    <h5>使用示例</h5>
+                    <div class="code-block">
+                      <pre><code>&lt;template&gt;
+  &lt;Oscilloscope 
+    :config="scopeConfig" 
+    :width="1200" 
+    :height="800"
+    @config-change="onConfigChange"
+    @waveform-data="onWaveformData"
+  /&gt;
+&lt;/template&gt;</code></pre>
+                    </div>
+                  </div>
+                </div>
+              </el-card>
+
+              <el-card class="component-card" shadow="hover">
+                <template #header>
+                  <div class="component-header">
+                    <h4>信号发生器</h4>
+                    <div class="component-actions">
+                      <el-button size="small" @click="downloadComponent('信号发生器')">
+                        <el-icon><Download /></el-icon>
+                        下载
+                      </el-button>
+                    </div>
+                  </div>
+                </template>
+                
+                <div class="component-content">
+                  <p class="component-description">多功能信号发生器，支持多种波形类型</p>
+                  
+                  <div class="component-example">
+                    <h5>使用示例</h5>
+                    <div class="code-block">
+                      <pre><code>&lt;template&gt;
+  &lt;SignalGenerator 
+    :config="genConfig"
+    :channels="outputChannels"
+    @output-change="onOutputChange"
+  /&gt;
+&lt;/template&gt;</code></pre>
                     </div>
                   </div>
                 </div>
@@ -146,99 +284,10 @@ import { Oscilloscope, SignalGenerator } from 'seesharptools-vue'</code></pre>
         </div>
       </section>
 
-      <!-- 下载中心 -->
-      <section id="download" class="doc-section">
-        <h2 class="section-title">
-          <el-icon><Download /></el-icon>
-          下载中心
-        </h2>
+      <section class="doc-section">
+        <h2 class="section-title">下载中心</h2>
         
         <div class="download-grid">
-          <!-- 单个控件下载 -->
-          <el-card class="download-card">
-            <template #header>
-              <h3>🎯 单个控件下载</h3>
-            </template>
-            
-            <div class="download-content">
-              <p>选择需要的控件，生成自定义下载包</p>
-              
-              <div class="component-selector">
-                <h4>选择控件</h4>
-                <div class="selector-grid">
-                  <el-checkbox-group v-model="selectedComponents">
-                    <div 
-                      v-for="category in componentCategories" 
-                      :key="category.id"
-                      class="selector-category"
-                    >
-                      <h5>{{ category.title }}</h5>
-                      <el-checkbox 
-                        v-for="component in category.components" 
-                        :key="component.name"
-                        :label="component.name"
-                        :value="component.name"
-                      >
-                        {{ component.name }}
-                      </el-checkbox>
-                    </div>
-                  </el-checkbox-group>
-                </div>
-              </div>
-              
-              <div class="download-actions">
-                <el-button 
-                  type="primary" 
-                  size="large"
-                  @click="generateCustomDownload"
-                  :disabled="selectedComponents.length === 0"
-                >
-                  <el-icon><Download /></el-icon>
-                  生成下载包 ({{ selectedComponents.length }}个控件)
-                </el-button>
-              </div>
-            </div>
-          </el-card>
-
-          <!-- 预设包下载 -->
-          <el-card class="download-card">
-            <template #header>
-              <h3>📦 预设包下载</h3>
-            </template>
-            
-            <div class="preset-packages">
-              <div 
-                v-for="preset in presetPackages" 
-                :key="preset.id"
-                class="preset-item"
-              >
-                <div class="preset-info">
-                  <h4>{{ preset.name }}</h4>
-                  <p>{{ preset.description }}</p>
-                  <div class="preset-components">
-                    <el-tag 
-                      v-for="comp in preset.components.slice(0, 3)" 
-                      :key="comp"
-                      size="small"
-                    >
-                      {{ comp }}
-                    </el-tag>
-                    <span v-if="preset.components.length > 3">
-                      +{{ preset.components.length - 3 }}个
-                    </span>
-                  </div>
-                </div>
-                <div class="preset-actions">
-                  <el-button @click="downloadPreset(preset)">
-                    <el-icon><Download /></el-icon>
-                    下载
-                  </el-button>
-                </div>
-              </div>
-            </div>
-          </el-card>
-
-          <!-- 完整项目下载 -->
           <el-card class="download-card">
             <template #header>
               <h3>🚀 完整项目</h3>
@@ -251,7 +300,7 @@ import { Oscilloscope, SignalGenerator } from 'seesharptools-vue'</code></pre>
                 <div class="option-item">
                   <h4>前端项目</h4>
                   <p>Vue 3 + TypeScript + 所有控件</p>
-                  <el-button type="primary" @click="downloadProject('frontend')">
+                  <el-button type="primary" @click="downloadProject">
                     <el-icon><Download /></el-icon>
                     下载前端项目
                   </el-button>
@@ -260,7 +309,7 @@ import { Oscilloscope, SignalGenerator } from 'seesharptools-vue'</code></pre>
                 <div class="option-item">
                   <h4>完整项目</h4>
                   <p>前端 + 后端 + 文档</p>
-                  <el-button type="primary" @click="downloadProject('full')">
+                  <el-button type="primary" @click="downloadProject">
                     <el-icon><Download /></el-icon>
                     下载完整项目
                   </el-button>
@@ -275,239 +324,17 @@ import { Oscilloscope, SignalGenerator } from 'seesharptools-vue'</code></pre>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { 
-  Document, VideoPlay, Grid, Download,
-  TrendCharts, Monitor, DataAnalysis
-} from '@element-plus/icons-vue'
+import { Document, Download } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
-// 响应式数据
-const selectedComponents = ref<string[]>([])
-
-// 控件分类数据
-const componentCategories = reactive([
-  {
-    id: 1,
-    title: '基础控件',
-    icon: 'DataAnalysis',
-    components: [
-      {
-        name: '数字显示器',
-        description: '高精度数字显示控件，支持多种数值格式和单位',
-        example: `<template>
-  <DigitalDisplay 
-    :value="75.234" 
-    :precision="3"
-    unit="V"
-    @value-change="onValueChange"
-  />
-</template>`
-      },
-      {
-        name: '线性仪表',
-        description: '线性刻度仪表，适用于压力、温度等物理量显示',
-        example: `<template>
-  <LinearGauge 
-    :value="65" 
-    :min="0" 
-    :max="100"
-    orientation="horizontal"
-    unit="°C"
-  />
-</template>`
-      },
-      {
-        name: '温度计',
-        description: '温度显示控件，支持摄氏度和华氏度',
-        example: `<template>
-  <Thermometer 
-    :temperature="25.6" 
-    unit="C"
-    :range="{ min: -20, max: 100 }"
-  />
-</template>`
-      }
-    ]
-  },
-  {
-    id: 2,
-    title: '高性能图表',
-    icon: 'TrendCharts',
-    components: [
-      {
-        name: '高性能StripChart',
-        description: '实时数据条带图，支持大数据量高频更新',
-        example: `<template>
-  <StripChart 
-    :data="chartData" 
-    :channels="channels"
-    :time-span="10"
-    :update-rate="100"
-    @data-update="onDataUpdate"
-  />
-</template>`
-      },
-      {
-        name: 'FFT频谱分析',
-        description: '快速傅里叶变换频谱分析图表',
-        example: `<template>
-  <SpectrumChart 
-    :time-data="signalData" 
-    :fft-size="1024"
-    window-function="hanning"
-    :sample-rate="1000000"
-    @fft-result="onFFTResult"
-  />
-</template>`
-      },
-      {
-        name: '频谱分析仪',
-        description: '专业频谱分析仪界面，模拟真实仪器',
-        example: `<template>
-  <SpectrumAnalyzer 
-    :frequency="{ start: 0, stop: 1000000 }"
-    :amplitude="{ ref: 0, scale: 10 }"
-    :span="1000000"
-    :rbw="1000"
-  />
-</template>`
-      }
-    ]
-  },
-  {
-    id: 3,
-    title: '模块仪器',
-    icon: 'Monitor',
-    components: [
-      {
-        name: '数字示波器',
-        description: '专业数字示波器控件，支持多通道波形显示',
-        example: `<template>
-  <Oscilloscope 
-    :config="scopeConfig" 
-    :width="1200" 
-    :height="800"
-    @config-change="onConfigChange"
-    @waveform-data="onWaveformData"
-  />
-</template>`
-      },
-      {
-        name: '信号发生器',
-        description: '多功能信号发生器，支持多种波形类型',
-        example: `<template>
-  <SignalGenerator 
-    :config="genConfig"
-    :channels="outputChannels"
-    @output-change="onOutputChange"
-  />
-</template>`
-      },
-      {
-        name: '数字万用表',
-        description: '高精度数字万用表，支持多种测量功能',
-        example: `<template>
-  <DigitalMultimeter 
-    mode="voltage"
-    range="auto"
-    :auto-range="true"
-    @measurement-change="onMeasurement"
-  />
-</template>`
-      }
-    ]
-  }
-])
-
-// 预设包
-const presetPackages = reactive([
-  {
-    id: 1,
-    name: '基础测量包',
-    description: '包含基础测量所需的核心控件',
-    components: ['数字显示器', '线性仪表', '温度计', '数字万用表']
-  },
-  {
-    id: 2,
-    name: '信号分析包',
-    description: '专业信号分析和频谱分析工具',
-    components: ['FFT频谱分析', '频谱分析仪', '高性能StripChart', '信号发生器']
-  },
-  {
-    id: 3,
-    name: '完整仪器包',
-    description: '所有专业仪器控件的完整集合',
-    components: ['数字示波器', '信号发生器', '数字万用表', 'FFT频谱分析', '频谱分析仪']
-  }
-])
-
-// 方法
-const scrollToSection = (sectionId: string) => {
-  const element = document.getElementById(sectionId)
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth' })
-  }
+const downloadComponent = (componentName: string) => {
+  ElMessage.success(componentName + ' 下载完成')
 }
 
-const downloadComponent = (component: any) => {
-  const componentCode = generateComponentCode(component)
-  downloadFile(`${component.name}.vue`, componentCode)
-  ElMessage.success(`${component.name} 下载完成`)
-}
-
-const generateCustomDownload = () => {
-  if (selectedComponents.value.length === 0) {
-    ElMessage.warning('请选择至少一个控件')
-    return
-  }
-  
-  const packageData = generatePackage(selectedComponents.value)
-  downloadFile('seesharptools-custom.zip', packageData)
-  ElMessage.success(`自定义包下载完成 (${selectedComponents.value.length}个控件)`)
-}
-
-const downloadPreset = (preset: any) => {
-  const packageData = generatePackage(preset.components)
-  downloadFile(`${preset.name}.zip`, packageData)
-  ElMessage.success(`${preset.name} 下载完成`)
-}
-
-const downloadProject = (type: string) => {
+const downloadProject = () => {
   const url = 'https://github.com/wukeping2008/seesharptools-web/archive/refs/heads/main.zip'
   window.open(url, '_blank')
   ElMessage.success('项目下载已开始')
-}
-
-// 工具函数
-const generateComponentCode = (component: any) => {
-  return `<!-- ${component.name} -->
-${component.example}
-
-<script setup lang="ts">
-// ${component.description}
-// 更多配置请参考文档
-</script>
-
-<style scoped>
-/* 自定义样式 */
-</style>`
-}
-
-const generatePackage = (components: string[]) => {
-  return `Package for: ${components.join(', ')}`
-}
-
-const downloadFile = (filename: string, content: string) => {
-  const blob = new Blob([content], { type: 'text/plain' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
 }
 </script>
 
@@ -543,20 +370,6 @@ const downloadFile = (filename: string, content: string) => {
       opacity: 0.9;
       margin-bottom: 40px;
     }
-    
-    .quick-nav {
-      .el-button-group {
-        .el-button {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.2);
-          color: white;
-          
-          &:hover {
-            background: rgba(255, 255, 255, 0.2);
-          }
-        }
-      }
-    }
   }
 }
 
@@ -573,9 +386,6 @@ const downloadFile = (filename: string, content: string) => {
       font-weight: 700;
       color: var(--text-primary);
       margin-bottom: 40px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
     }
   }
 }
@@ -611,9 +421,6 @@ const downloadFile = (filename: string, content: string) => {
       font-weight: 600;
       color: var(--text-primary);
       margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
     
     .components-list {
@@ -672,74 +479,6 @@ const downloadFile = (filename: string, content: string) => {
   gap: 32px;
   
   .download-card {
-    .download-content {
-      .component-selector {
-        margin-bottom: 24px;
-        
-        .selector-grid {
-          .selector-category {
-            margin-bottom: 16px;
-            
-            h5 {
-              font-size: 14px;
-              font-weight: 600;
-              margin-bottom: 8px;
-              color: var(--text-primary);
-            }
-            
-            .el-checkbox {
-              display: block;
-              margin-bottom: 8px;
-            }
-          }
-        }
-      }
-      
-      .download-actions {
-        text-align: center;
-      }
-    }
-    
-    .preset-packages {
-      .preset-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 16px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        margin-bottom: 12px;
-        
-        .preset-info {
-          flex: 1;
-          
-          h4 {
-            margin: 0 0 8px 0;
-            font-size: 16px;
-            font-weight: 600;
-          }
-          
-          p {
-            margin: 0 0 8px 0;
-            color: var(--text-secondary);
-            font-size: 14px;
-          }
-          
-          .preset-components {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            align-items: center;
-            
-            span {
-              font-size: 12px;
-              color: var(--text-secondary);
-            }
-          }
-        }
-      }
-    }
-    
     .project-download {
       .project-options {
         display: grid;
@@ -768,7 +507,6 @@ const downloadFile = (filename: string, content: string) => {
   }
 }
 
-// 响应式设计
 @media (max-width: 768px) {
   .doc-header {
     padding: 40px 0;
@@ -780,18 +518,6 @@ const downloadFile = (filename: string, content: string) => {
       
       .doc-subtitle {
         font-size: 16px;
-      }
-      
-      .quick-nav {
-        .el-button-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          
-          .el-button {
-            width: 100%;
-          }
-        }
       }
     }
   }
