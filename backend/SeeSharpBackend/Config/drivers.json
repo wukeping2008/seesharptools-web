@@ -43,7 +43,7 @@
       "Name": "JYUSB1601",
       "Type": "CSharpDll",
       "Enabled": true,
-      "DriverPath": "C:\\SeeSharp\\JYTEK\\Hardware\\DAQ\\JYUSB1601\\Bin\\JYUSB1601.dll",
+      "DriverPath": "Drivers/JYUSB1601.dll",
       "DeviceModel": "JYUSB1601",
       "Description": "简仪科技JYUSB1601 USB高速数据采集卡驱动",
       "SupportedDevices": [
@@ -62,7 +62,13 @@
         "DefaultSampleRate": 500000,
         "MaxSampleRate": 1000000,
         "ChannelCount": 16,
-        "Resolution": 16
+        "Resolution": 16,
+        "VoltageRanges": [
+          "±10V",
+          "±5V",
+          "±2V",
+          "±1V"
+        ]
       }
     },
     "MockDriver": {

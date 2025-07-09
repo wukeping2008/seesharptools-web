@@ -101,6 +101,7 @@ builder.Services.AddSingleton<IDriverManager, DriverManager>();
 builder.Services.AddTransient<CSharpDllDriverAdapter>();
 builder.Services.AddTransient<MockDriverAdapter>();
 builder.Services.AddTransient<JY5500DllDriverAdapter>();
+builder.Services.AddTransient<JYUSB1601DllDriverAdapter>();
 
 // 注册MISD服务
 builder.Services.AddScoped<IMISDService, MISDService>();
