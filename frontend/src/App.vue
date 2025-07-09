@@ -229,6 +229,11 @@
             <el-icon><Grid /></el-icon>
             <span>示例</span>
           </router-link>
+          
+          <router-link to="/documentation" class="nav-item" active-class="active">
+            <el-icon><Document /></el-icon>
+            <span>文档</span>
+          </router-link>
         </nav>
         
         <div class="header-actions">

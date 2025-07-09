@@ -220,7 +220,13 @@
         </div>
         <div class="info-item">
           <h3>文档</h3>
-          <p>完整的API文档和使用指南 <span class="coming-soon">(即将推出)</span></p>
+          <p>完整的API文档和使用指南</p>
+          <router-link to="/documentation" class="doc-link">
+            <el-button type="primary">
+              <el-icon><Document /></el-icon>
+              查看文档
+            </el-button>
+          </router-link>
         </div>
       </div>
     </section>

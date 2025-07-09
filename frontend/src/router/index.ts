@@ -182,6 +182,11 @@ const routes: Array<RouteRecordRaw> = [
       path: '/backend-integration-test',
       name: 'BackendIntegrationTest',
       component: () => import('@/views/BackendIntegrationTest.vue')
+    },
+    {
+      path: '/documentation',
+      name: 'Documentation',
+      component: () => import('@/views/DocumentationView.vue')
     }
 ]
 
