@@ -17,11 +17,11 @@
             <span>首页</span>
           </router-link>
           
-          <!-- 基础控件分类 -->
+          <!-- 前端控件库 -->
           <el-dropdown class="nav-dropdown" trigger="hover">
             <div class="nav-item dropdown-trigger">
-              <el-icon><DataAnalysis /></el-icon>
-              <span>基础控件</span>
+              <el-icon><Monitor /></el-icon>
+              <span>前端控件库</span>
               <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
             </div>
             <template #dropdown>
@@ -29,141 +29,50 @@
                 <el-dropdown-item>
                   <router-link to="/instruments" class="dropdown-link">
                     <el-icon><DataAnalysis /></el-icon>
-                    <span>仪表控件</span>
+                    <span>基础控件</span>
                   </router-link>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <router-link to="/linear-gauge-test" class="dropdown-link">
-                    <el-icon><DataAnalysis /></el-icon>
-                    <span>线性仪表测试</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/thermometer-test" class="dropdown-link">
-                    <el-icon><DataAnalysis /></el-icon>
-                    <span>温度计测试</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/indicators" class="dropdown-link">
-                    <el-icon><Warning /></el-icon>
-                    <span>指示控件</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/digital-display-test" class="dropdown-link">
-                    <el-icon><Warning /></el-icon>
-                    <span>数字显示器测试</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/controls" class="dropdown-link">
-                    <el-icon><Setting /></el-icon>
-                    <span>控制控件</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/switch-test" class="dropdown-link">
-                    <el-icon><Setting /></el-icon>
-                    <span>开关测试</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/button-array-test" class="dropdown-link">
-                    <el-icon><Setting /></el-icon>
-                    <span>按钮阵列测试</span>
-                  </router-link>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          
-          <!-- 图表控件分类 -->
-          <el-dropdown class="nav-dropdown" trigger="hover">
-            <div class="nav-item dropdown-trigger">
-              <el-icon><TrendCharts /></el-icon>
-              <span>图表控件</span>
-              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
-            </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item>
-                  <router-link to="/waveform" class="dropdown-link">
+                  <router-link to="/enhanced-stripchart-test" class="dropdown-link">
                     <el-icon><TrendCharts /></el-icon>
-                    <span>波形图表</span>
+                    <span>高性能图表</span>
                   </router-link>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <router-link to="/stripchart" class="dropdown-link">
-                    <el-icon><TrendCharts /></el-icon>
-                    <span>条带图</span>
+                  <router-link to="/oscilloscope-test" class="dropdown-link">
+                    <el-icon><Monitor /></el-icon>
+                    <span>专业仪器</span>
                   </router-link>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <router-link to="/enhanced-charts" class="dropdown-link">
-                    <el-icon><DataAnalysis /></el-icon>
-                    <span>增强图表</span>
-                  </router-link>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          
-          <!-- 仪器控件分类 -->
-          <el-dropdown class="nav-dropdown" trigger="hover">
-            <div class="nav-item dropdown-trigger">
-              <el-icon><Monitor /></el-icon>
-              <span>仪器控件</span>
-              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
-            </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item>
-                  <router-link to="/oscilloscope" class="dropdown-link">
-                    <el-icon><TrendCharts /></el-icon>
-                    <span>示波器</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/spectrum" class="dropdown-link">
-                    <el-icon><DataLine /></el-icon>
-                    <span>频谱分析</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/signal-generator" class="dropdown-link">
-                    <el-icon><Timer /></el-icon>
-                    <span>信号发生器</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/data-acquisition" class="dropdown-link">
-                    <el-icon><DataAnalysis /></el-icon>
-                    <span>数据采集卡</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/power-supply" class="dropdown-link">
+                  <router-link to="/ai-control-generator-test" class="dropdown-link">
                     <el-icon><Cpu /></el-icon>
-                    <span>电源控制器</span>
+                    <span>AI智能生成</span>
+                  </router-link>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          
+          <!-- 后端集成平台 -->
+          <el-dropdown class="nav-dropdown" trigger="hover">
+            <div class="nav-item dropdown-trigger">
+              <el-icon><Cpu /></el-icon>
+              <span>后端集成平台</span>
+              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>
+                  <router-link to="/backend-integration-test" class="dropdown-link">
+                    <el-icon><Link /></el-icon>
+                    <span>前后端集成测试</span>
                   </router-link>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <router-link to="/signal-generator-test" class="dropdown-link">
-                    <el-icon><Timer /></el-icon>
-                    <span>信号发生器测试</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/digital-multimeter-test" class="dropdown-link">
-                    <el-icon><Monitor /></el-icon>
-                    <span>数字万用表测试</span>
-                  </router-link>
-                </el-dropdown-item>
-                <el-dropdown-item>
-                  <router-link to="/temperature-acquisition-card-test" class="dropdown-link">
-                    <el-icon><Monitor /></el-icon>
-                    <span>温度采集卡</span>
+                  <router-link to="/data-storage-test" class="dropdown-link">
+                    <el-icon><DataAnalysis /></el-icon>
+                    <span>数据存储和回放</span>
                   </router-link>
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -172,7 +81,7 @@
           
           <router-link to="/examples" class="nav-item" active-class="active">
             <el-icon><Grid /></el-icon>
-            <span>综合示例</span>
+            <span>示例</span>
           </router-link>
         </nav>
         

@@ -5,8 +5,8 @@
       <div class="hero-content">
         <div class="hero-text">
           <h1 class="hero-title">
-            专业测试测量仪器控件库
-            <span class="title-highlight">Professional Test & Measurement Controls</span>
+            SeeSharpTools Web 版本
+            <span class="title-highlight">专业测试测量仪器控件库</span>
           </h1>
           <p class="hero-description">
             基于 Vue 3 + TypeScript 构建的专业测试测量仪器界面控件库，
@@ -22,15 +22,8 @@
             <div class="ai-content">
               <h3 class="ai-title">🤖 AI智能控件生成器</h3>
               <p class="ai-description">
-                革命性的AI辅助开发工具！只需用自然语言描述需求，AI自动生成专业的Vue 3控件代码，
-                包含完整的TypeScript类型定义、SCSS样式和使用示例。
+                革命性的AI辅助开发工具！只需用自然语言描述需求，AI自动生成专业的Vue 3控件代码。
               </p>
-              <div class="ai-features">
-                <span class="ai-feature">自然语言理解</span>
-                <span class="ai-feature">秒级代码生成</span>
-                <span class="ai-feature">专业工业风格</span>
-                <span class="ai-feature">完整类型支持</span>
-              </div>
               <el-button type="primary" size="large" class="ai-cta" @click="router.push('/ai-control-generator-test')">
                 <el-icon><Cpu /></el-icon>
                 立即体验AI生成
@@ -38,26 +31,8 @@
             </div>
           </div>
           
-          <div class="hero-features">
-            <div class="feature-item">
-              <el-icon class="feature-icon"><DataAnalysis /></el-icon>
-              <span>精密仪表控件</span>
-            </div>
-            <div class="feature-item">
-              <el-icon class="feature-icon"><TrendCharts /></el-icon>
-              <span>实时数据显示</span>
-            </div>
-            <div class="feature-item">
-              <el-icon class="feature-icon"><Setting /></el-icon>
-              <span>专业控制组件</span>
-            </div>
-            <div class="feature-item">
-              <el-icon class="feature-icon"><Monitor /></el-icon>
-              <span>科学仪器风格</span>
-            </div>
-          </div>
           <div class="hero-actions">
-            <el-button type="primary" size="large" @click="router.push('/instruments')">
+            <el-button type="primary" size="large" @click="scrollToModules">
               <el-icon><DataAnalysis /></el-icon>
               开始探索
             </el-button>
@@ -136,116 +111,96 @@
       </div>
     </section>
 
-    <!-- 特性介绍 -->
-    <section class="features-section">
+    <!-- 主要模块 -->
+    <section class="modules-section" ref="modulesSection">
       <div class="section-header">
-        <h2 class="section-title">核心特性</h2>
-        <p class="section-subtitle">为测试测量应用量身定制的专业控件</p>
+        <h2 class="section-title">主要模块</h2>
+        <p class="section-subtitle">前端控件库 + 后端硬件集成平台</p>
       </div>
       
-      <div class="features-grid">
-        <div class="feature-card" v-for="feature in features" :key="feature.id">
-          <div class="feature-icon-wrapper">
-            <el-icon class="feature-icon-large">
-              <component :is="feature.icon" />
-            </el-icon>
-          </div>
-          <h3 class="feature-title">{{ feature.title }}</h3>
-          <p class="feature-description">{{ feature.description }}</p>
-          <ul class="feature-list">
-            <li v-for="item in feature.items" :key="item">{{ item }}</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- 控件分类 -->
-    <section class="categories-section">
-      <div class="section-header">
-        <h2 class="section-title">控件分类</h2>
-        <p class="section-subtitle">涵盖测试测量应用的各个方面</p>
-      </div>
-      
-      <div class="categories-grid">
-        <router-link 
-          v-for="category in categories" 
-          :key="category.id"
-          :to="category.path"
-          class="category-card"
-        >
-          <div class="category-icon">
-            <el-icon>
-              <component :is="category.icon" />
-            </el-icon>
-          </div>
-          <h3 class="category-title">{{ category.title }}</h3>
-          <p class="category-description">{{ category.description }}</p>
-          <div class="category-count">{{ category.count }}+ 控件</div>
-        </router-link>
-      </div>
-    </section>
-
-    <!-- 技术栈 -->
-    <section class="tech-section">
-      <div class="section-header">
-        <h2 class="section-title">技术栈</h2>
-        <p class="section-subtitle">基于现代前端技术构建</p>
-      </div>
-      
-      <div class="tech-grid">
-        <div class="tech-item" v-for="tech in techStack" :key="tech.name">
-          <div class="tech-logo">{{ tech.logo }}</div>
-          <div class="tech-name">{{ tech.name }}</div>
-          <div class="tech-version">{{ tech.version }}</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 快速开始 -->
-    <section class="quickstart-section">
-      <div class="quickstart-content">
-        <h2 class="section-title">快速开始</h2>
-        <p class="section-subtitle">几分钟内集成到您的项目中</p>
-        
-        <div class="quickstart-steps">
-          <div class="step-item">
-            <div class="step-number">1</div>
-            <div class="step-content">
-              <h4>安装依赖</h4>
-              <div class="code-block">
-                <code>npm install instrument-controls-web</code>
-              </div>
+      <div class="modules-grid">
+        <!-- 前端控件库模块 -->
+        <div class="module-card frontend-module">
+          <div class="module-header">
+            <div class="module-icon">
+              <el-icon><Monitor /></el-icon>
+            </div>
+            <div class="module-info">
+              <h3 class="module-title">前端控件库</h3>
+              <p class="module-subtitle">专业测控界面组件</p>
             </div>
           </div>
           
-          <div class="step-item">
-            <div class="step-number">2</div>
-            <div class="step-content">
-              <h4>导入组件</h4>
-              <div class="code-block">
-                <code>import { CircularGauge } from 'instrument-controls-web'</code>
+          <div class="module-categories">
+            <router-link 
+              v-for="category in frontendCategories" 
+              :key="category.id"
+              :to="category.path"
+              class="category-item"
+            >
+              <div class="category-icon">
+                <el-icon>
+                  <component :is="category.icon" />
+                </el-icon>
               </div>
+              <div class="category-content">
+                <h4 class="category-title">{{ category.title }}</h4>
+                <p class="category-description">{{ category.description }}</p>
+                <span class="category-count">{{ category.count }}+ 控件</span>
+              </div>
+            </router-link>
+          </div>
+        </div>
+
+        <!-- 后端集成平台模块 -->
+        <div class="module-card backend-module">
+          <div class="module-header">
+            <div class="module-icon">
+              <el-icon><Cpu /></el-icon>
+            </div>
+            <div class="module-info">
+              <h3 class="module-title">后端集成平台</h3>
+              <p class="module-subtitle">硬件驱动与数据处理</p>
             </div>
           </div>
           
-          <div class="step-item">
-            <div class="step-number">3</div>
-            <div class="step-content">
-              <h4>开始使用</h4>
-              <div class="code-block">
-                <code>&lt;CircularGauge :value="75.2" unit="V" /&gt;</code>
+          <div class="module-categories">
+            <router-link 
+              v-for="category in backendCategories" 
+              :key="category.id"
+              :to="category.path"
+              class="category-item"
+            >
+              <div class="category-icon">
+                <el-icon>
+                  <component :is="category.icon" />
+                </el-icon>
               </div>
-            </div>
+              <div class="category-content">
+                <h4 class="category-title">{{ category.title }}</h4>
+                <p class="category-description">{{ category.description }}</p>
+                <span class="category-status">{{ category.status }}</span>
+              </div>
+            </router-link>
           </div>
         </div>
-        
-        <div class="quickstart-actions">
-          <el-button type="primary" size="large" @click="router.push('/examples')">
-            查看示例
-          </el-button>
-          <el-button size="large" @click="openDocs">
-            阅读文档
-          </el-button>
+      </div>
+    </section>
+
+    <!-- 项目信息 -->
+    <section class="info-section">
+      <div class="info-content">
+        <div class="info-item">
+          <h3>技术栈</h3>
+          <p>Vue 3 + TypeScript + ECharts + ASP.NET Core</p>
+        </div>
+        <div class="info-item">
+          <h3>开源协议</h3>
+          <p>MIT License</p>
+        </div>
+        <div class="info-item">
+          <h3>文档</h3>
+          <p>完整的API文档和使用指南 <span class="coming-soon">(即将推出)</span></p>
         </div>
       </div>
     </section>
@@ -266,219 +221,78 @@ const router = useRouter()
 // 响应式数据
 const animatedValue = ref(1000.0)
 const waveformPath = ref('')
+const modulesSection = ref<HTMLElement>()
 
-// 特性数据
-const features = [
+// 前端控件分类
+const frontendCategories = [
   {
     id: 1,
+    title: '基础控件',
+    description: '仪表、指示器、控制器等基础界面组件',
     icon: 'DataAnalysis',
-    title: '精密仪表控件',
-    description: '高精度的圆形和线性仪表，支持多种测量单位和量程自动调节',
-    items: ['圆形仪表盘', '线性进度条', '数字显示器', '阈值标记']
+    path: '/instruments',
+    count: 15
   },
   {
     id: 2,
+    title: '高性能图表',
+    description: 'StripChart、FFT频谱分析、专业测量工具',
     icon: 'TrendCharts',
-    title: '实时数据显示',
-    description: '支持高频数据更新的波形和趋势图显示组件',
-    items: ['示波器显示', '频谱分析', '数据记录器', '趋势图表']
-  },
-  {
-    id: 3,
-    icon: 'Setting',
-    title: '专业控制组件',
-    description: '精密的控制组件，支持细调和粗调操作',
-    items: ['精密旋钮', '范围滑块', '按钮阵列', '开关控件']
-  },
-  {
-    id: 4,
-    icon: 'Warning',
-    title: '状态指示系统',
-    description: '多样化的状态指示和报警组件',
-    items: ['LED指示器', '状态显示', '报警系统', '连接状态']
-  }
-]
-
-// 控件分类
-const categories = [
-  {
-    id: 1,
-    title: '仪表控件',
-    description: '圆形仪表、线性仪表、数字显示器等精密测量显示组件',
-    icon: 'DataAnalysis',
-    path: '/instruments',
+    path: '/enhanced-stripchart-test',
     count: 8
   },
   {
-    id: 2,
-    title: '指示控件',
-    description: 'LED指示器、状态显示、报警指示等状态反馈组件',
-    icon: 'Warning',
-    path: '/indicators',
+    id: 3,
+    title: '专业仪器',
+    description: '示波器、万用表、信号发生器等专业仪器控件',
+    icon: 'Monitor',
+    path: '/oscilloscope-test',
     count: 6
   },
   {
-    id: 3,
-    title: '控制控件',
-    description: '旋钮、滑块、按钮、开关等用户交互控制组件',
-    icon: 'Setting',
-    path: '/controls',
-    count: 10
-  },
-  {
     id: 4,
-    title: '示波器',
-    description: '多通道波形显示、触发控制、测量标尺等示波器功能',
-    icon: 'TrendCharts',
-    path: '/oscilloscope',
-    count: 5
-  },
-  {
-    id: 5,
-    title: '频谱分析',
-    description: '频谱显示、标记功能、参考电平等频域分析组件',
-    icon: 'DataLine',
-    path: '/spectrum',
-    count: 4
-  },
-  {
-    id: 6,
-    title: '信号发生器',
-    description: '任意波形发生器、调制功能、扫频控制等信号生成组件',
-    icon: 'Timer',
-    path: '/signal-generator',
-    count: 3
-  },
-  {
-    id: 7,
-    title: '数据采集卡',
-    description: '高精度多通道数据采集系统，支持同步采样和实时数据处理',
-    icon: 'DataAnalysis',
-    path: '/data-acquisition',
-    count: 1
-  },
-  {
-    id: 8,
-    title: '电源控制器',
-    description: '可编程直流电源、恒压恒流模式、多重保护和序列控制',
-    icon: 'Cpu',
-    path: '/power-supply',
-    count: 2
-  },
-    {
-      id: 8,
-      title: 'StripChart条带图',
-      description: '高速数据流实时显示控件，支持1GS/s采样率和多通道同步',
-      icon: 'TrendCharts',
-      path: '/stripchart',
-      count: 1
-    },
-    {
-      id: 10,
-      title: '高性能StripChart',
-      description: 'WebGL渲染 + 多级缓存，支持1GS/s数据流的超高性能图表',
-      icon: 'DataLine',
-      path: '/enhanced-stripchart-test',
-      count: 1
-    },
-    {
-      id: 11,
-      title: 'FFT频谱分析',
-      description: '集成FFT分析功能的增强版图表，支持多种窗函数和峰值检测',
-      icon: 'TrendCharts',
-      path: '/spectrum-chart-test',
-      count: 1
-    },
-    {
-      id: 12,
-      title: '高级数学分析图表',
-      description: '集成统计分析、数据拟合、数字滤波器的专业图表组件',
-      icon: 'DataAnalysis',
-      path: '/advanced-easy-chart-test',
-      count: 1
-    },
-  {
-    id: 13,
-    title: '专业测量工具图表',
-    description: '集成游标测量、峰值检测、频率分析、自动测量的专业图表',
-    icon: 'Monitor',
-    path: '/professional-easy-chart-test',
-    count: 1
-  },
-  {
-    id: 14,
-    title: '双Y轴图表',
-    description: '支持左右双Y轴的专业图表，可显示不同量程和单位的数据系列',
-    icon: 'DataAnalysis',
-    path: '/dual-axis-easy-chart-test',
-    count: 1
-  },
-  {
-    id: 15,
-    title: '温度采集卡',
-    description: '专业多通道温度采集卡控件，支持8种热电偶类型和冷端补偿',
-    icon: 'Monitor',
-    path: '/temperature-acquisition-card-test',
-    count: 1
-  },
-  {
-    id: 16,
-    title: '数字万用表',
-    description: '专业数字万用表控件，支持8种测量功能、自动量程、统计分析',
-    icon: 'Monitor',
-    path: '/digital-multimeter-test',
-    count: 1
-  },
-  {
-    id: 17,
-    title: '数字示波器',
-    description: '专业4通道数字示波器控件，支持多种触发模式、精确测量、实时分析',
-    icon: 'TrendCharts',
-    path: '/oscilloscope-test',
-    count: 1
-  },
-  {
-    id: 18,
-    title: 'DIO控制卡',
-    description: '数字I/O控制卡控件，支持多端口、位操作、实时监控、时序控制',
-    icon: 'Grid',
-    path: '/dio-card-test',
-    count: 1
-  },
-  {
-    id: 19,
-    title: 'AI智能控件生成器',
-    description: '基于自然语言的AI控件生成系统，自动生成专业Vue 3控件代码',
+    title: 'AI智能生成',
+    description: '基于自然语言的AI控件生成系统',
     icon: 'Cpu',
     path: '/ai-control-generator-test',
     count: 1
-  },
+  }
+]
+
+// 后端集成分类
+const backendCategories = [
   {
-    id: 20,
+    id: 1,
     title: '前后端集成测试',
     description: '测试前端与后端API和SignalR的完整集成功能',
     icon: 'Link',
     path: '/backend-integration-test',
-    count: 1
+    status: '✅ 已完成'
   },
   {
-    id: 21,
-    title: '数据存储和回放系统',
-    description: '高性能数据存储、历史数据查询、数据回放等功能测试',
+    id: 2,
+    title: '数据存储和回放',
+    description: '高性能数据存储、历史数据查询、数据回放系统',
     icon: 'DataAnalysis',
     path: '/data-storage-test',
-    count: 1
+    status: '✅ 已完成'
+  },
+  {
+    id: 3,
+    title: '硬件驱动管理',
+    description: 'MISD标准化接口层、驱动管理、设备发现',
+    icon: 'Cpu',
+    path: '/backend-integration-test',
+    status: '✅ 已完成'
+  },
+  {
+    id: 4,
+    title: '实时数据采集',
+    description: '多线程数据采集引擎、SignalR实时通信',
+    icon: 'TrendCharts',
+    path: '/backend-integration-test',
+    status: '✅ 已完成'
   }
-]
-
-// 技术栈
-const techStack = [
-  { name: 'Vue 3', version: '3.4+', logo: 'V' },
-  { name: 'TypeScript', version: '5.3+', logo: 'TS' },
-  { name: 'ECharts', version: '5.4+', logo: 'E' },
-  { name: 'Element Plus', version: '2.4+', logo: 'EP' },
-  { name: 'Vite', version: '5.0+', logo: 'V' },
-  { name: 'SCSS', version: '1.69+', logo: 'S' }
 ]
 
 // 动画定时器
@@ -492,6 +306,12 @@ const openGitHub = () => {
 
 const openDocs = () => {
   window.open('/docs', '_blank')
+}
+
+const scrollToModules = () => {
+  if (modulesSection.value) {
+    modulesSection.value.scrollIntoView({ behavior: 'smooth' })
+  }
 }
 
 const startAnimations = () => {
@@ -975,6 +795,214 @@ onUnmounted(() => {
     .tech-version {
       font-size: 14px;
       color: var(--text-secondary);
+    }
+  }
+}
+
+// 主要模块样式
+.modules-section {
+  padding: 80px 0;
+  background: var(--background-color);
+  
+  .section-header {
+    text-align: center;
+    margin-bottom: 60px;
+    
+    .section-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+    }
+    
+    .section-subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+    }
+  }
+  
+  .modules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+  }
+  
+  .module-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 32px;
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    &.frontend-module {
+      border-left: 4px solid #2E86AB;
+    }
+    
+    &.backend-module {
+      border-left: 4px solid #A23B72;
+    }
+    
+    .module-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      
+      .module-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        
+        .el-icon {
+          font-size: 28px;
+          color: white;
+        }
+      }
+      
+      .module-info {
+        .module-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: var(--text-primary);
+          margin-bottom: 4px;
+        }
+        
+        .module-subtitle {
+          font-size: 14px;
+          color: var(--text-secondary);
+        }
+      }
+    }
+    
+    &.frontend-module .module-header .module-icon {
+      background: linear-gradient(135deg, #2E86AB, #4A9FBF);
+    }
+    
+    &.backend-module .module-header .module-icon {
+      background: linear-gradient(135deg, #A23B72, #B85A8A);
+    }
+    
+    .module-categories {
+      display: grid;
+      gap: 16px;
+      
+      .category-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: rgba(46, 134, 171, 0.05);
+        border: 1px solid rgba(46, 134, 171, 0.1);
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background: rgba(46, 134, 171, 0.1);
+          border-color: rgba(46, 134, 171, 0.2);
+          transform: translateX(4px);
+        }
+        
+        .category-icon {
+          width: 40px;
+          height: 40px;
+          background: var(--primary-color);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          
+          .el-icon {
+            font-size: 20px;
+            color: white;
+          }
+        }
+        
+        .category-content {
+          flex: 1;
+          
+          .category-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+          }
+          
+          .category-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 6px;
+          }
+          
+          .category-count {
+            font-size: 12px;
+            color: var(--primary-color);
+            font-weight: 500;
+          }
+          
+          .category-status {
+            font-size: 12px;
+            color: #10B981;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+}
+
+// 项目信息样式
+.info-section {
+  padding: 60px 0;
+  background: var(--surface-color);
+  border-top: 1px solid var(--border-color);
+  
+  .info-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 32px;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 24px;
+    
+    .info-item {
+      text-align: center;
+      
+      h3 {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+      }
+      
+      p {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        
+        .coming-soon {
+          color: #F59E0B;
+          font-style: italic;
+        }
+      }
     }
   }
 }
