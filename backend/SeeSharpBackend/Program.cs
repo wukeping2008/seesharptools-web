@@ -1,6 +1,9 @@
 using Microsoft.OpenApi.Models;
 using SeeSharpBackend.Services.MISD;
 using SeeSharpBackend.Services.Drivers;
+using SeeSharpBackend.Services.DataCompression;
+using SeeSharpBackend.Services.Connection;
+using SeeSharpBackend.Hubs;
 using Serilog;
 using System.Reflection;
 
@@ -82,7 +85,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;
-    options.MaximumReceiveMessageSize = 1024 * 1024; // 1MB
+    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB - 支持大数据包
+    options.StreamBufferCapacity = 10;
+    options.MaximumParallelInvocationsPerClient = 2;
 });
 
 // 注册驱动管理器
@@ -97,6 +102,12 @@ builder.Services.AddTransient<MockDriverAdapter>();
 
 // 注册MISD服务
 builder.Services.AddScoped<IMISDService, MISDService>();
+
+// 注册数据压缩服务
+builder.Services.AddSingleton<IDataCompressionService, DataCompressionService>();
+
+// 注册连接管理服务
+builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 
 // 配置AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
@@ -205,40 +216,6 @@ public class MISDInitializationService : BackgroundService
     }
 }
 
-// SignalR数据流Hub
-public class DataStreamHub : Microsoft.AspNetCore.SignalR.Hub
-{
-    private readonly ILogger<DataStreamHub> _logger;
-
-    public DataStreamHub(ILogger<DataStreamHub> logger)
-    {
-        _logger = logger;
-    }
-
-    public override async Task OnConnectedAsync()
-    {
-        _logger.LogInformation("客户端连接: {ConnectionId}", Context.ConnectionId);
-        await base.OnConnectedAsync();
-    }
-
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        _logger.LogInformation("客户端断开连接: {ConnectionId}", Context.ConnectionId);
-        await base.OnDisconnectedAsync(exception);
-    }
-
-    public async Task JoinGroup(string groupName)
-    {
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-        _logger.LogInformation("客户端 {ConnectionId} 加入组 {GroupName}", Context.ConnectionId, groupName);
-    }
-
-    public async Task LeaveGroup(string groupName)
-    {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
-        _logger.LogInformation("客户端 {ConnectionId} 离开组 {GroupName}", Context.ConnectionId, groupName);
-    }
-}
 
 // 临时实现类（后续需要完整实现）
 public class DeviceDiscoveryService : IDeviceDiscoveryService
