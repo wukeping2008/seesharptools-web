@@ -342,7 +342,7 @@ const backendCategories = [
     title: '硬件驱动管理',
     description: 'MISD标准化接口层、驱动管理、设备发现',
     icon: 'Cpu',
-    path: '/backend-integration-test'
+    path: '/hardware-driver-test'
   },
   {
     id: 4,

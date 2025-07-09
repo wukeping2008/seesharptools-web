@@ -188,6 +188,11 @@ const routes: Array<RouteRecordRaw> = [
       name: 'BackendIntegrationTest',
       component: () => import('@/views/BackendIntegrationTest.vue')
     },
+    {
+      path: '/hardware-driver-test',
+      name: 'HardwareDriverTest',
+      component: () => import('@/views/HardwareDriverTest.vue')
+    },
 ]
 
 const router = createRouter({
