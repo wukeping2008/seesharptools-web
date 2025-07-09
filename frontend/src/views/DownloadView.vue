@@ -231,7 +231,7 @@
             </template>
             <div class="doc-content">
               <p>包含安装、配置、基础使用的完整指南</p>
-              <el-button type="primary" @click="downloadDoc({ name: '快速开始指南', type: 'guide' })">
+              <el-button type="primary" @click="downloadGuide">
                 <el-icon><Download /></el-icon>
                 下载指南
               </el-button>
@@ -244,7 +244,7 @@
             </template>
             <div class="doc-content">
               <p>详细的API接口文档和参数说明</p>
-              <el-button type="primary" @click="downloadDoc({ name: 'API参考文档', type: 'api' })">
+              <el-button type="primary" @click="downloadApiDoc">
                 <el-icon><Download /></el-icon>
                 下载文档
               </el-button>
@@ -393,37 +393,8 @@ const aiComponents = reactive([
   }
 ])
 
-const downloadComponent = (component: any) => {
-  const className = component.name.toLowerCase().replace(/\s+/g, '-')
-  const code = '<!-- ' + component.name + ' -->\n' +
-    '<template>\n' +
-    '  <div class="' + className + '-container">\n' +
-    '    <!-- ' + component.description + ' -->\n' +
-    '    <div class="component-content">\n' +
-    '      <!-- 控件实现 -->\n' +
-    '    </div>\n' +
-    '  </div>\n' +
-    '</template>\n\n' +
-    '<script setup lang="ts">\n' +
-    'import { ref, reactive } from \'vue\'\n\n' +
-    '// 控件属性\n' +
-    'const props = defineProps<{\n' +
-    '  // 定义属性\n' +
-    '}>()\n\n' +
-    '// 控件事件\n' +
-    'const emit = defineEmits<{\n' +
-    '  // 定义事件\n' +
-    '}>()\n\n' +
-    '// 控件状态\n' +
-    'const state = reactive({\n' +
-    '  // 状态数据\n' +
-    '})\n' +
-    '</script>\n\n' +
-    '<style lang="scss" scoped>\n' +
-    '.' + className + '-container {\n' +
-    '  /* 控件样式 */\n' +
-    '}\n' +
-    '</style>'
+function downloadComponent(component: any) {
+  const code = '<template>\n  <div class="component-container">\n    <!-- ' + component.description + ' -->\n    <div class="component-content">\n      <!-- 控件实现 -->\n    </div>\n  </div>\n</template>\n\n<script setup lang="ts">\nimport { ref, reactive } from \'vue\'\n\n// 控件属性\nconst props = defineProps<{\n  // 定义属性\n}>()\n\n// 控件事件\nconst emit = defineEmits<{\n  // 定义事件\n}>()\n\n// 控件状态\nconst state = reactive({\n  // 状态数据\n})\n</script>\n\n<style lang="scss" scoped>\n.component-container {\n  /* 控件样式 */\n}\n</style>'
 
   const blob = new Blob([code], { type: 'text/plain;charset=utf-8' })
   const url = URL.createObjectURL(blob)
@@ -438,13 +409,12 @@ const downloadComponent = (component: any) => {
   ElMessage.success(component.name + ' 控件下载完成')
 }
 
-const downloadDoc = (item: any) => {
-  const componentName = item.name.replace(/\s+/g, '')
+function downloadDoc(item: any) {
   const doc = '# ' + item.name + '\n\n' +
     '## 概述\n' + (item.description || '详细的使用说明和API文档') + '\n\n' +
     '## 安装\n```bash\nnpm install seesharptools-vue\n```\n\n' +
-    '## 基础使用\n```vue\n<template>\n  <' + componentName + ' :config="config" />\n</template>\n\n' +
-    '<script setup lang="ts">\nimport { ' + componentName + ' } from \'seesharptools-vue\'\n\n' +
+    '## 基础使用\n```vue\n<template>\n  <ComponentName :config="config" />\n</template>\n\n' +
+    '<script setup lang="ts">\nimport { ComponentName } from \'seesharptools-vue\'\n\n' +
     'const config = reactive({\n  // 配置选项\n})\n</script>\n```\n\n' +
     '## API参考\n详细的API文档和使用示例\n\n' +
     '## 许可证\nMIT License'
@@ -462,11 +432,11 @@ const downloadDoc = (item: any) => {
   ElMessage.success(item.name + ' 文档下载完成')
 }
 
-const viewDemo = (component: any) => {
+function viewDemo(component: any) {
   router.push(component.demoRoute)
 }
 
-const downloadCustomPackage = () => {
+function downloadCustomPackage() {
   if (selectedComponents.value.length === 0) {
     ElMessage.warning('请选择至少一个控件')
     return
@@ -494,10 +464,49 @@ const downloadCustomPackage = () => {
   ElMessage.success('自定义包下载完成 (' + selectedComponents.value.length + '个控件)')
 }
 
-const downloadProject = () => {
+function downloadProject() {
   const url = 'https://github.com/wukeping2008/seesharptools-web/archive/refs/heads/main.zip'
   window.open(url, '_blank')
   ElMessage.success('项目下载已开始')
+}
+
+function downloadGuide() {
+  const guide = '# SeeSharpTools Web 快速开始指南\n\n' +
+    '## 安装\n```bash\nnpm install seesharptools-vue\n```\n\n' +
+    '## 基础使用\n详细的使用说明...\n\n' +
+    '## 配置\n配置说明...\n\n' +
+    '## 示例\n示例代码...'
+
+  const blob = new Blob([guide], { type: 'text/markdown;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = '快速开始指南.md'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  
+  ElMessage.success('快速开始指南下载完成')
+}
+
+function downloadApiDoc() {
+  const apiDoc = '# SeeSharpTools Web API参考文档\n\n' +
+    '## API概述\n详细的API接口文档...\n\n' +
+    '## 组件API\n各组件的API说明...\n\n' +
+    '## 事件API\n事件处理说明...'
+
+  const blob = new Blob([apiDoc], { type: 'text/markdown;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'API参考文档.md'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+  
+  ElMessage.success('API参考文档下载完成')
 }
 </script>
 
