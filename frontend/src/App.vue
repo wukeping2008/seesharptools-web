@@ -62,6 +62,18 @@
                     <span>按钮阵列</span>
                   </router-link>
                 </el-dropdown-item>
+                <el-dropdown-item>
+                  <router-link to="/linear-gauge-test" class="dropdown-link">
+                    <el-icon><DataAnalysis /></el-icon>
+                    <span>线性仪表</span>
+                  </router-link>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <router-link to="/thermometer-test" class="dropdown-link">
+                    <el-icon><DataAnalysis /></el-icon>
+                    <span>温度计</span>
+                  </router-link>
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -100,7 +112,7 @@
                   </router-link>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <router-link to="/dual-axis-easy-chart-test" class="dropdown-link">
+                  <router-link to="/dual-axis-easychart-test" class="dropdown-link">
                     <el-icon><DataAnalysis /></el-icon>
                     <span>双Y轴图表</span>
                   </router-link>

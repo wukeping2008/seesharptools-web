@@ -259,7 +259,9 @@ const frontendCategories = reactive([
       { name: '控制控件', path: '/controls' },
       { name: '数字显示器', path: '/digital-display-test' },
       { name: '开关测试', path: '/switch-test' },
-      { name: '按钮阵列', path: '/button-array-test' }
+      { name: '按钮阵列', path: '/button-array-test' },
+      { name: '线性仪表', path: '/linear-gauge-test' },
+      { name: '温度计', path: '/thermometer-test' }
     ]
   },
   {
@@ -275,7 +277,7 @@ const frontendCategories = reactive([
       { name: 'FFT频谱分析', path: '/spectrum-chart-test' },
       { name: '高级数学分析', path: '/advanced-easy-chart-test' },
       { name: '专业测量工具', path: '/professional-easy-chart-test' },
-      { name: '双Y轴图表', path: '/dual-axis-easy-chart-test' },
+      { name: '双Y轴图表', path: '/dual-axis-easychart-test' },
       { name: '波形图表', path: '/waveform' },
       { name: '条带图', path: '/stripchart' },
       { name: '增强图表', path: '/enhanced-charts' }
@@ -283,7 +285,7 @@ const frontendCategories = reactive([
   },
   {
     id: 3,
-    title: '专业仪器',
+    title: '模块仪器',
     description: '示波器、万用表、信号发生器等专业仪器控件',
     icon: 'Monitor',
     path: '/instruments',
