@@ -4,9 +4,12 @@ using SeeSharpBackend.Services.Drivers;
 using SeeSharpBackend.Services.DataCompression;
 using SeeSharpBackend.Services.Connection;
 using SeeSharpBackend.Services.DataStorage;
+using SeeSharpBackend.Services.Monitoring;
 using SeeSharpBackend.Hubs;
 using Serilog;
 using System.Reflection;
+using Microsoft.AspNetCore.HttpOverrides;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,16 +69,18 @@ builder.Services.AddSwaggerGen(c =>
 // 配置CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("Production", policy =>
     {
-        policy.AllowAnyOrigin()
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new string[0];
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
     
     options.AddPolicy("Development", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:5176", "http://localhost:8080")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:5176", "http://localhost:5177", "http://localhost:8080")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -119,19 +124,53 @@ builder.Services.AddScoped<SeeSharpBackend.Services.DataAcquisition.IDataAcquisi
 builder.Services.Configure<DataStorageOptions>(builder.Configuration.GetSection("DataStorage"));
 builder.Services.AddSingleton<IDataStorageService, DataStorageService>();
 
+// 注册性能监控服务
+builder.Services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitoringService>();
+
 // 配置AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
 // 配置健康检查
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy())
+    .AddCheck("system_memory", () =>
+    {
+        var gc = GC.GetTotalMemory(false);
+        return gc < 1024 * 1024 * 1024 // 1GB
+            ? Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy($"Memory usage: {gc / 1024 / 1024} MB")
+            : Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Degraded($"High memory usage: {gc / 1024 / 1024} MB");
+    });
 
 // 配置内存缓存
 builder.Services.AddMemoryCache();
 
+// 注册HttpClient服务（用于AI控制器调用Claude API）
+builder.Services.AddHttpClient();
+
 // 配置后台服务
 builder.Services.AddHostedService<MISDInitializationService>();
 
+// 配置转发头
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    // 信任所有代理（生产环境中应该配置具体的代理IP）
+    options.ForwardLimit = null;
+    options.RequireHeaderSymmetry = false;
+    options.KnownProxies.Clear();
+    options.KnownNetworks.Clear();
+});
+
+// 配置Kestrel以接受任何主机名
+builder.WebHost.UseUrls("http://0.0.0.0:5001");
+
 var app = builder.Build();
+
+// 使用转发头
+app.UseForwardedHeaders();
+
+// 添加Prometheus指标中间件
+app.UseHttpMetrics();
 
 // 配置HTTP请求管道
 if (app.Environment.IsDevelopment())
@@ -152,11 +191,14 @@ else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
-    app.UseCors("AllowAll");
+    app.UseCors("Production");
 }
 
-// 使用HTTPS重定向
-app.UseHttpsRedirection();
+// 使用HTTPS重定向（仅在开发环境）
+if (app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // 静态文件
 app.UseStaticFiles();
@@ -175,6 +217,9 @@ app.MapHub<DataStreamHub>("/hubs/datastream");
 
 // 健康检查
 app.MapHealthChecks("/health");
+
+// Prometheus指标端点
+app.MapMetrics();
 
 // 根路径重定向到Swagger
 app.MapGet("/", () => Results.Redirect("/swagger"));

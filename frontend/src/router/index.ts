@@ -179,11 +179,6 @@ const routes: Array<RouteRecordRaw> = [
       component: () => import('@/views/DIOCardTest.vue')
     },
     {
-      path: '/ai-control-generator-test',
-      name: 'AIControlGeneratorTest',
-      component: () => import('@/views/AIControlGeneratorTest.vue')
-    },
-    {
       path: '/backend-integration-test',
       name: 'BackendIntegrationTest',
       component: () => import('@/views/BackendIntegrationTest.vue')
@@ -192,6 +187,16 @@ const routes: Array<RouteRecordRaw> = [
       path: '/hardware-driver-test',
       name: 'HardwareDriverTest',
       component: () => import('@/views/HardwareDriverTest.vue')
+    },
+    {
+      path: '/ai-control-generator',
+      name: 'AIControlGenerator',
+      component: () => import('@/views/AIControlGeneratorTest.vue')
+    },
+    {
+      path: '/performance-monitoring',
+      name: 'PerformanceMonitoring',
+      component: () => import('@/views/PerformanceMonitoringView.vue')
     },
 ]
 

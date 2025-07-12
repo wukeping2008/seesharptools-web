@@ -54,7 +54,7 @@ export class SignalRService {
   private taskStatusCallbacks: Set<TaskStatusCallback> = new Set()
   private connectionCallbacks: Set<ConnectionCallback> = new Set()
 
-  constructor(baseURL: string = 'http://localhost:5151') {
+  constructor(baseURL: string = 'http://localhost:5001') {
     this.baseURL = baseURL
   }
 

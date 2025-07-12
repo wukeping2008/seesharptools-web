@@ -24,7 +24,7 @@
               <p class="ai-description">
                 革命性的AI辅助开发工具！只需用自然语言描述需求，AI自动生成专业的Vue 3控件代码。
               </p>
-              <el-button type="primary" size="large" class="ai-cta" @click="router.push('/ai-control-generator-test')">
+              <el-button type="primary" size="large" class="ai-cta" @click="router.push('/ai-control-generator')">
                 <el-icon><Cpu /></el-icon>
                 立即体验AI生成
               </el-button>
@@ -312,11 +312,11 @@ const frontendCategories = reactive([
     title: 'AI智能生成',
     description: '基于自然语言的AI控件生成系统',
     icon: 'Cpu',
-    path: '/ai-control-generator-test',
+    path: '/ai-control-generator',
     count: 1,
     expanded: false,
     subcategories: [
-      { name: 'AI控件生成器', path: '/ai-control-generator-test' }
+      { name: 'AI控件生成器', path: '/ai-control-generator' }
     ]
   }
 ])
@@ -346,6 +346,13 @@ const backendCategories = [
   },
   {
     id: 4,
+    title: '性能监控仪表板',
+    description: '实时系统性能监控、Prometheus指标、健康检查',
+    icon: 'Monitor',
+    path: '/performance-monitoring'
+  },
+  {
+    id: 5,
     title: '实时数据采集',
     description: '多线程数据采集引擎、SignalR实时通信',
     icon: 'TrendCharts',

@@ -83,7 +83,7 @@ export class BackendApiService {
   private api: AxiosInstance
   private baseURL: string
 
-  constructor(baseURL: string = 'http://localhost:5151') {
+  constructor(baseURL: string = 'http://localhost:5001') {
     this.baseURL = baseURL
     this.api = axios.create({
       baseURL: this.baseURL,
@@ -350,6 +350,22 @@ export class BackendApiService {
    */
   getSwaggerURL(): string {
     return `${this.baseURL}/swagger`
+  }
+
+  /**
+   * 通用POST请求方法
+   */
+  async post<T = any>(url: string, data?: any): Promise<T> {
+    const response = await this.api.post<T>(url, data)
+    return response.data
+  }
+
+  /**
+   * 通用GET请求方法
+   */
+  async get<T = any>(url: string, params?: any): Promise<T> {
+    const response = await this.api.get<T>(url, { params })
+    return response.data
   }
 }
 

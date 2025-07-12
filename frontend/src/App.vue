@@ -216,7 +216,7 @@
                   </router-link>
                 </el-dropdown-item>
                 <el-dropdown-item>
-                  <router-link to="/ai-control-generator-test" class="dropdown-link">
+                  <router-link to="/ai-control-generator" class="dropdown-link">
                     <el-icon><Cpu /></el-icon>
                     <span>AI智能生成</span>
                   </router-link>
