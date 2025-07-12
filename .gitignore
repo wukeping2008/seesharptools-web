@@ -99,6 +99,9 @@ public
 tmp/
 temp/
 
+# Archive folder (local deployment scripts and temporary files)
+archive/
+
 # .NET Core
 bin/
 obj/

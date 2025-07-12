@@ -198,6 +198,16 @@ const routes: Array<RouteRecordRaw> = [
       name: 'PerformanceMonitoring',
       component: () => import('@/views/PerformanceMonitoringView.vue')
     },
+    {
+      path: '/data-analysis-test',
+      name: 'DataAnalysisTest',
+      component: () => import('@/views/DataAnalysisTest.vue')
+    },
+    {
+      path: '/project-developer',
+      name: 'ProjectDeveloper',
+      component: () => import('@/views/ProjectDeveloperView.vue')
+    },
 ]
 
 const router = createRouter({

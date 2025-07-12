@@ -353,10 +353,24 @@ const backendCategories = [
   },
   {
     id: 5,
+    title: '数据分析与报告',
+    description: '统计分析、趋势预测、异常检测、智能报告生成',
+    icon: 'TrendCharts',
+    path: '/data-analysis-test'
+  },
+  {
+    id: 6,
     title: '实时数据采集',
     description: '多线程数据采集引擎、SignalR实时通信',
-    icon: 'TrendCharts',
+    icon: 'DataLine',
     path: '/backend-integration-test'
+  },
+  {
+    id: 7,
+    title: '项目开发器',
+    description: '可视化测控项目开发环境，拖拽式界面设计',
+    icon: 'Setting',
+    path: '/project-developer'
   }
 ]
 

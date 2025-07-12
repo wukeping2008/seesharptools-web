@@ -24,7 +24,7 @@ namespace SeeSharpBackend.Controllers
         [HttpGet("status")]
         public IActionResult GetStatus()
         {
-            var apiKey = _configuration["Claude:ApiKey"];
+            var apiKey = _configuration["VolcesDeepseek:ApiKey"];
             var hasApiKey = !string.IsNullOrEmpty(apiKey);
             
             return Ok(new { hasApiKey });
@@ -35,14 +35,14 @@ namespace SeeSharpBackend.Controllers
         {
             try
             {
-                // 获取Claude API配置
-                var apiKey = _configuration["Claude:ApiKey"];
-                var apiUrl = _configuration["Claude:ApiUrl"] ?? "https://api.anthropic.com/v1/messages";
+                // 获取火山DeepSeek API配置
+                var apiKey = _configuration["VolcesDeepseek:ApiKey"];
+                var apiUrl = _configuration["VolcesDeepseek:Url"] ?? "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
 
-                // 如果有API密钥，使用Claude API
+                // 如果有API密钥，使用火山DeepSeek API
                 if (!string.IsNullOrEmpty(apiKey))
                 {
-                    return await GenerateWithClaudeAPI(request, apiKey, apiUrl);
+                    return await GenerateWithVolcesDeepseekAPI(request, apiKey, apiUrl);
                 }
 
                 // 否则使用预定义模板
@@ -55,71 +55,124 @@ namespace SeeSharpBackend.Controllers
             }
         }
 
-        private async Task<IActionResult> GenerateWithClaudeAPI(GenerateControlRequest request, string apiKey, string apiUrl)
+        private async Task<IActionResult> GenerateWithVolcesDeepseekAPI(GenerateControlRequest request, string apiKey, string apiUrl)
         {
-            // 构建系统提示词
-            var systemPrompt = @"你是一个Vue 3组件生成专家。用户会描述他们需要的测试测量仪器控件，你需要生成完整的Vue 3组件代码。
+            try
+            {
+                // 优化的系统提示词 - 更明确的JSON响应格式要求
+                var systemPrompt = @"你是一个Vue 3组件生成专家。用户会描述他们需要的测试测量仪器控件，你需要生成完整的Vue 3组件代码。
 
-要求：
+严格要求：
 1. 使用Vue 3 Composition API (<script setup lang=""ts"">)
-2. 使用TypeScript
+2. 使用TypeScript，包含完整的Props接口定义
 3. 包含完整的template、script和style部分
 4. 生成专业的测试测量仪器风格的控件
 5. 确保代码可以直接使用，不需要额外依赖
 6. 使用内联SVG或CSS来创建视觉效果
-7. 包含必要的props接口定义
-8. 添加适当的动画和交互效果
+7. 添加适当的动画和交互效果
+8. 代码必须是完整的、可运行的Vue组件
 
-只返回Vue组件代码，不要包含任何解释或其他内容。";
+重要：只返回Vue组件代码，不要包含任何解释、注释或markdown标记。直接从<template>开始，以</style>结束。";
 
-            // 构建请求体
-            var requestBody = new
-            {
-                model = "claude-3-sonnet-20240229",
-                max_tokens = 4000,
-                temperature = 0.7,
-                system = systemPrompt,
-                messages = new[]
+                // 构建请求体 - 火山DeepSeek格式
+                var requestBody = new
                 {
-                    new
+                    model = "deepseek-r1-250528",
+                    max_tokens = 16191,
+                    temperature = 0.3, // 降低随机性，提高稳定性
+                    messages = new[]
                     {
-                        role = "user",
-                        content = $"请生成一个Vue 3组件：{request.Description}"
+                        new
+                        {
+                            role = "system",
+                            content = systemPrompt
+                        },
+                        new
+                        {
+                            role = "user",
+                            content = $"请生成一个Vue 3组件：{request.Description}\n\n要求：直接返回Vue组件代码，不要任何额外说明。"
+                        }
+                    }
+                };
+
+                // 设置请求头 - 火山DeepSeek格式
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+
+                // 设置超时时间
+                _httpClient.Timeout = TimeSpan.FromSeconds(30);
+
+                // 发送请求
+                var json = JsonSerializer.Serialize(requestBody, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                
+                var response = await _httpClient.PostAsync(apiUrl, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                _logger.LogInformation($"火山DeepSeek API响应状态: {response.StatusCode}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"火山DeepSeek API错误: {response.StatusCode} - {responseContent}");
+                    // API失败时自动降级到模板生成
+                    _logger.LogInformation("火山DeepSeek API失败，降级到模板生成");
+                    return GenerateWithTemplate(request);
+                }
+
+                // 火山DeepSeek API响应解析
+                string generatedCode = null;
+                
+                try
+                {
+                    // 火山DeepSeek API响应格式解析
+                    var responseObj = JsonDocument.Parse(responseContent);
+                    if (responseObj.RootElement.TryGetProperty("choices", out var choicesArray) && 
+                        choicesArray.ValueKind == JsonValueKind.Array &&
+                        choicesArray.GetArrayLength() > 0)
+                    {
+                        var firstChoice = choicesArray[0];
+                        if (firstChoice.TryGetProperty("message", out var messageObj) &&
+                            messageObj.TryGetProperty("content", out var contentElement))
+                        {
+                            generatedCode = contentElement.GetString();
+                        }
                     }
                 }
-            };
+                catch (JsonException ex)
+                {
+                    _logger.LogError($"火山DeepSeek API响应解析失败: {ex.Message}");
+                    _logger.LogError($"响应内容: {responseContent}");
+                    return GenerateWithTemplate(request);
+                }
 
-            // 设置请求头
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("x-api-key", apiKey);
-            _httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+                if (string.IsNullOrEmpty(generatedCode))
+                {
+                    _logger.LogWarning("火山DeepSeek API未返回有效代码，降级到模板生成");
+                    return GenerateWithTemplate(request);
+                }
 
-            // 发送请求
-            var json = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            
-            var response = await _httpClient.PostAsync(apiUrl, content);
-            var responseContent = await response.Content.ReadAsStringAsync();
+                // 增强的代码清理
+                generatedCode = CleanGeneratedCode(generatedCode);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError($"Claude API错误: {response.StatusCode} - {responseContent}");
-                return BadRequest(new { success = false, error = $"AI服务错误: {response.StatusCode}" });
+                // 验证生成的代码是否包含基本的Vue组件结构
+                if (!IsValidVueComponent(generatedCode))
+                {
+                    _logger.LogWarning("生成的代码不是有效的Vue组件，降级到模板生成");
+                    return GenerateWithTemplate(request);
+                }
+
+                _logger.LogInformation("火山DeepSeek API成功生成控件代码");
+                return Ok(new { success = true, code = generatedCode, source = "volces-deepseek-api" });
             }
-
-            // 解析响应
-            var claudeResponse = JsonSerializer.Deserialize<ClaudeResponse>(responseContent);
-            var generatedCode = claudeResponse?.content?.FirstOrDefault()?.text;
-
-            if (string.IsNullOrEmpty(generatedCode))
+            catch (Exception ex)
             {
-                return BadRequest(new { success = false, error = "AI未能生成有效代码" });
+                _logger.LogError(ex, "火山DeepSeek API调用过程中发生异常");
+                // 异常时自动降级到模板生成
+                return GenerateWithTemplate(request);
             }
-
-            // 清理代码（移除可能的markdown标记）
-            generatedCode = CleanGeneratedCode(generatedCode);
-
-            return Ok(new { success = true, code = generatedCode });
         }
 
         private IActionResult GenerateWithTemplate(GenerateControlRequest request)
@@ -817,6 +870,20 @@ const emergencyStop = () => {
                 code = code.Substring(0, code.LastIndexOf("```"));
             }
             return code.Trim();
+        }
+
+        private bool IsValidVueComponent(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+                return false;
+
+            // 检查是否包含基本的Vue组件结构
+            var hasTemplate = code.Contains("<template>") && code.Contains("</template>");
+            var hasScript = code.Contains("<script") && code.Contains("</script>");
+            var hasStyle = code.Contains("<style") && code.Contains("</style>");
+
+            // 至少需要template和script部分
+            return hasTemplate && hasScript;
         }
     }
 
