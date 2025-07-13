@@ -16,6 +16,41 @@ build/
 .env.production.local
 *.env
 
+# API Keys and sensitive configuration
+appsettings.Production.json
+appsettings.Development.json
+**/appsettings.*.json
+*.key
+*.pem
+alethea.pem
+
+# Deployment and temporary files
+deploy-temp/
+archive/
+aleathea key pem/
+*.tar.gz
+upload-via-http.py
+test_jy5500_integration.py
+port-scanner.sh
+
+# Documentation that may contain sensitive info
+docs/CLAUDE_API_SETUP.md
+docs/API_KEY_SECURITY_WARNING.md
+SEESHARP_DEPLOYMENT_GUIDE.md
+SEESHARPWEB_DEPLOYMENT_GUIDE.md
+DEPLOYMENT_TROUBLESHOOTING.md
+VNC_SETUP_GUIDE.md
+COMPLETE_DEPLOYMENT_PACKAGE.md
+MANUAL_DEPLOYMENT_COMMANDS.md
+SEESHARPWEB_DEPLOYMENT_STATUS.md
+FINAL_DEPLOYMENT_STATUS.md
+FINAL_DEPLOYMENT_INSTRUCTIONS.md
+QUICK_DEPLOY.md
+
+# Deployment scripts
+deploy-*.sh
+deploy.sh
+
 # IDE files
 .vscode/
 .idea/
@@ -98,9 +133,6 @@ public
 # Temporary folders
 tmp/
 temp/
-
-# Archive folder (local deployment scripts and temporary files)
-archive/
 
 # .NET Core
 bin/
