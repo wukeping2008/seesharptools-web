@@ -319,7 +319,7 @@ import Oscilloscope from '@/components/professional/instruments/Oscilloscope.vue
 import SignalGenerator from '@/components/professional/instruments/SignalGenerator.vue'
 import EasyChart from '@/components/professional/charts/EasyChart.vue'
 import EnhancedEasyChart from '@/components/professional/charts/EnhancedEasyChart.vue'
-import DigitalMultimeter from '@/components/professional/instruments/DigitalMultimeter.vue'
+import DigitalMultimeter from '@/components/instruments/DigitalMultimeter.vue'
 import TemperatureAcquisitionCard from '@/components/professional/instruments/TemperatureAcquisitionCard.vue'
 import DIOCard from '@/components/professional/instruments/DIOCard.vue'
 
