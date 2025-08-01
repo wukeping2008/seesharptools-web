@@ -5,6 +5,7 @@ using SeeSharpBackend.Services.DataCompression;
 using SeeSharpBackend.Services.Connection;
 using SeeSharpBackend.Services.DataStorage;
 using SeeSharpBackend.Services.Monitoring;
+using SeeSharpBackend.Services.CSharpRunner;
 using SeeSharpBackend.Hubs;
 using Serilog;
 using System.Reflection;
@@ -126,6 +127,14 @@ builder.Services.AddSingleton<IDataStorageService, DataStorageService>();
 
 // 注册性能监控服务
 builder.Services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitoringService>();
+
+// 注册 C# Runner 服务
+builder.Services.Configure<CSharpRunnerOptions>(builder.Configuration.GetSection("CSharpRunner"));
+builder.Services.AddHttpClient<ICSharpRunnerService, CSharpRunnerService>();
+builder.Services.AddScoped<ICSharpRunnerService, CSharpRunnerService>();
+
+// 注册 AI 智能服务
+builder.Services.AddScoped<SeeSharpBackend.Services.AI.INaturalLanguageProcessor, SeeSharpBackend.Services.AI.NaturalLanguageProcessor>();
 
 // 配置AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));

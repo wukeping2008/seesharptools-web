@@ -1,0 +1,81 @@
+﻿name: Build Host
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/build-host.yml
+      - src/Sdcb.CSharpRunner.Host/**
+  workflow_dispatch:
+
+env:
+  DOCKER_ID: csharp-runner-host
+  
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { tag: nanoserver-1809,     runs-on: windows-latest, os: win,        arch: x64,   args: /p:ContainerBaseImage=mcr.microsoft.com/dotnet/aspnet:9.0-nanoserver-1809 }
+          - { tag: nanoserver-ltsc2022, runs-on: windows-latest, os: win,        arch: x64,   args: /p:ContainerBaseImage=mcr.microsoft.com/dotnet/aspnet:9.0-nanoserver-ltsc2022 }
+          - { tag: nanoserver-ltsc2025, runs-on: windows-latest, os: win,        arch: x64,   args: /p:ContainerBaseImage=mcr.microsoft.com/dotnet/aspnet:9.0-nanoserver-ltsc2025 }
+          - { tag: linux-arm64,         runs-on: ubuntu-22.04,   os: linux-musl, arch: arm64, args: /p:ContainerBaseImage=mcr.microsoft.com/dotnet/aspnet:9.0-alpine-composite }
+          - { tag: linux-x64,           runs-on: ubuntu-22.04,   os: linux-musl, arch: x64,   args: /p:ContainerBaseImage=mcr.microsoft.com/dotnet/aspnet:9.0-alpine-composite }
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Login container
+      run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ vars.DOCKER_USERNAME }} ${{ vars.DOCKER_REGISTRY }} --password-stdin
+
+    - name: Build container
+      run: |
+        dotnet publish ./src/Sdcb.CSharpRunner.Host/Sdcb.CSharpRunner.Host.csproj -c Release --os ${{ matrix.os }} --arch ${{ matrix.arch }} /t:PublishContainer /p:PublishReadyToRun=true /p:ContainerRepository=${{ env.DOCKER_ID }} ${{ needs.build-fe.outputs.msbuild_args }} ${{ matrix.args }}
+
+    - name: Tag container with run number
+      run: |
+        docker tag ${{ env.DOCKER_ID }} ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-${{ matrix.tag }}
+        
+    - name: Push container
+      run: |
+        docker push ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-${{ matrix.tag }}
+
+  docker-manifest:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login container
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ vars.DOCKER_USERNAME }} ${{ vars.DOCKER_REGISTRY }} --password-stdin
+        
+      - name: Create and push multiple manifests
+        run: |
+          TAGS=("r-${{ github.run_number }}"
+                "latest")
+
+          for TAG in "${TAGS[@]}"; do
+            echo "::group::Creating manifest for tag: $TAG"
+            
+            docker manifest create --amend ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:"$TAG" \
+              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-linux-x64 \
+              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-linux-arm64 \
+              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-nanoserver-1809 \
+              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-nanoserver-ltsc2022 \
+              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-nanoserver-ltsc2025
+              
+            docker manifest annotate ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:"$TAG" \
+              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-nanoserver-1809 \
+              --os-version 10.0.17763.6532
+
+            docker manifest annotate ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:"$TAG" \
+              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-nanoserver-ltsc2022 \
+              --os-version 10.0.20348.2849
+
+            docker manifest annotate ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:"$TAG" \
+              ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:r-${{ github.run_number }}-nanoserver-ltsc2025 \
+              --os-version 10.0.26100.3194
+              
+            docker manifest inspect ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:"$TAG"
+            
+            docker manifest push ${{ vars.DOCKER_REGISTRY }}/${{ vars.DOCKER_NAMESPACE }}/${{ env.DOCKER_ID }}:"$TAG"
+
+            echo "::endgroup::"
+          done

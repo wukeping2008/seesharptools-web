@@ -208,6 +208,11 @@ const routes: Array<RouteRecordRaw> = [
       name: 'ProjectDeveloper',
       component: () => import('@/views/ProjectDeveloperView.vue')
     },
+    {
+      path: '/csharp-runner-test',
+      name: 'CSharpRunnerTest',
+      component: () => import('@/views/CSharpRunnerTest.vue')
+    },
 ]
 
 const router = createRouter({
