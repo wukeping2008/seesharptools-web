@@ -19,6 +19,7 @@ build/
 # API Keys and sensitive configuration
 appsettings.Production.json
 appsettings.Development.json
+appsettings.Local.json
 **/appsettings.*.json
 *.key
 *.pem
