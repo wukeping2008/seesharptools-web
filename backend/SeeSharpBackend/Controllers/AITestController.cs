@@ -10,7 +10,7 @@ namespace SeeSharpBackend.Controllers
     /// 处理自然语言测试需求分析和代码生成
     /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/ai-test")]
     public class AITestController : ControllerBase
     {
         private readonly INaturalLanguageProcessor _nlpProcessor;
@@ -187,6 +187,285 @@ namespace SeeSharpBackend.Controllers
             {
                 _logger.LogError(ex, "端到端测试时发生错误");
                 return StatusCode(500, new { success = false, error = "端到端测试失败，请稍后重试" });
+            }
+        }
+
+        /// <summary>
+        /// 生成测试代码
+        /// </summary>
+        /// <param name="request">代码生成请求</param>
+        /// <returns>生成的代码</returns>
+        [HttpPost("generate")]
+        public async Task<IActionResult> GenerateTestCode([FromBody] GenerateCodeRequest request)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.Requirement))
+                {
+                    return BadRequest(new { success = false, error = "测试需求不能为空" });
+                }
+
+                _logger.LogInformation("收到代码生成请求: {Requirement}", request.Requirement);
+
+                // 1. 分析需求
+                var requirement = await _nlpProcessor.AnalyzeRequirementAsync(request.Requirement);
+
+                // 2. 生成代码
+                var generatedCode = GenerateCodeByTemplate(requirement);
+                if (string.IsNullOrEmpty(generatedCode))
+                {
+                    return BadRequest(new { success = false, error = "代码生成失败" });
+                }
+
+                // 3. 代码质量评估
+                var codeQuality = ValidateCodeQuality(generatedCode);
+
+                _logger.LogInformation("代码生成完成，质量评分: {Score}", codeQuality.Score);
+
+                return Ok(new
+                {
+                    success = true,
+                    generatedCode = generatedCode,
+                    codeQuality = new
+                    {
+                        score = codeQuality.Score,
+                        issues = codeQuality.Issues,
+                        suggestions = codeQuality.Suggestions
+                    },
+                    selectedTemplate = new
+                    {
+                        id = requirement.TestType,
+                        name = $"{requirement.TestType}模板",
+                        deviceType = requirement.RecommendedDevice,
+                        testType = requirement.TestType
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "生成测试代码时发生错误");
+                return StatusCode(500, new { success = false, error = "代码生成失败，请稍后重试" });
+            }
+        }
+
+        /// <summary>
+        /// 获取推荐模板
+        /// </summary>
+        /// <param name="requirement">需求描述（可选）</param>
+        /// <returns>推荐的模板列表</returns>
+        [HttpGet("templates/recommended")]
+        public async Task<IActionResult> GetRecommendedTemplates([FromQuery] string? requirement = null)
+        {
+            try
+            {
+                var templates = new List<object>();
+
+                if (!string.IsNullOrEmpty(requirement))
+                {
+                    // 基于需求推荐模板
+                    var analyzedRequirement = await _nlpProcessor.AnalyzeRequirementAsync(requirement);
+                    templates.Add(new
+                    {
+                        id = analyzedRequirement.TestType,
+                        name = $"{analyzedRequirement.TestType}测试模板",
+                        description = $"专为{analyzedRequirement.TestObject}设计的{analyzedRequirement.TestType}模板",
+                        deviceType = analyzedRequirement.RecommendedDevice,
+                        testType = analyzedRequirement.TestType,
+                        tags = new[] { analyzedRequirement.TestType, analyzedRequirement.RecommendedDevice },
+                        confidence = analyzedRequirement.Confidence
+                    });
+                }
+                else
+                {
+                    // 返回默认模板
+                    templates.AddRange(new[]
+                    {
+                        new
+                        {
+                            id = "vibration_test",
+                            name = "振动测试模板",
+                            description = "用于振动信号采集和FFT分析的标准模板",
+                            deviceType = "JYUSB1601",
+                            testType = "振动测试",
+                            tags = new[] { "振动", "FFT", "故障诊断" },
+                            confidence = 0.9
+                        },
+                        new
+                        {
+                            id = "electrical_test",
+                            name = "电气测试模板",
+                            description = "用于电气信号THD分析和功率测量的模板",
+                            deviceType = "JY5500",
+                            testType = "电气测试",
+                            tags = new[] { "电气", "THD", "功率分析" },
+                            confidence = 0.9
+                        },
+                        new
+                        {
+                            id = "temperature_test",
+                            name = "温度测量模板",
+                            description = "用于多点温度采集和统计分析的模板",
+                            deviceType = "JYUSB1601",
+                            testType = "温度测量",
+                            tags = new[] { "温度", "多点采集", "统计分析" },
+                            confidence = 0.8
+                        }
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    templates = templates
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取推荐模板时发生错误");
+                return StatusCode(500, new { success = false, error = "获取推荐模板失败" });
+            }
+        }
+
+        /// <summary>
+        /// 保存用户模板
+        /// </summary>
+        /// <param name="template">模板信息</param>
+        /// <returns>保存结果</returns>
+        [HttpPost("templates")]
+        public async Task<IActionResult> SaveUserTemplate([FromBody] SaveTemplateRequest template)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(template.Name) || string.IsNullOrWhiteSpace(template.Code))
+                {
+                    return BadRequest(new { success = false, error = "模板名称和代码不能为空" });
+                }
+
+                var templateId = Guid.NewGuid().ToString();
+                
+                _logger.LogInformation("保存用户模板: {Name}", template.Name);
+
+                // 这里应该保存到数据库，暂时返回成功响应
+                return Ok(new
+                {
+                    success = true,
+                    id = templateId
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "保存用户模板时发生错误");
+                return StatusCode(500, new { success = false, error = "保存模板失败" });
+            }
+        }
+
+        /// <summary>
+        /// 获取模板统计信息
+        /// </summary>
+        /// <returns>统计信息</returns>
+        [HttpGet("templates/statistics")]
+        public async Task<IActionResult> GetTemplateStatistics()
+        {
+            try
+            {
+                // 模拟统计数据
+                var statistics = new
+                {
+                    totalTemplates = 15,
+                    userTemplates = 3,
+                    systemTemplates = 12,
+                    mostUsedTemplate = "vibration_test",
+                    totalUsage = 127,
+                    categories = new[]
+                    {
+                        new { name = "振动测试", count = 5, usage = 45 },
+                        new { name = "电气测试", count = 4, usage = 38 },
+                        new { name = "温度测量", count = 3, usage = 25 },
+                        new { name = "通用测试", count = 3, usage = 19 }
+                    }
+                };
+
+                return Ok(new
+                {
+                    success = true,
+                    statistics = statistics
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取模板统计时发生错误");
+                return StatusCode(500, new { success = false, error = "获取统计信息失败" });
+            }
+        }
+
+        /// <summary>
+        /// 获取测试历史记录
+        /// </summary>
+        /// <param name="limit">返回记录数量限制</param>
+        /// <returns>历史记录</returns>
+        [HttpGet("history")]
+        public async Task<IActionResult> GetTestHistory([FromQuery] int limit = 10)
+        {
+            try
+            {
+                // 模拟历史数据
+                var history = new List<object>();
+                for (int i = 0; i < Math.Min(limit, 5); i++)
+                {
+                    history.Add(new
+                    {
+                        id = Guid.NewGuid().ToString(),
+                        requirement = $"测试需求 {i + 1}",
+                        testType = i % 2 == 0 ? "振动测试" : "电气测试",
+                        deviceType = i % 2 == 0 ? "JYUSB1601" : "JY5500",
+                        success = true,
+                        timestamp = DateTime.Now.AddHours(-i * 2).ToString("yyyy-MM-dd HH:mm:ss")
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    history = history
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取测试历史时发生错误");
+                return StatusCode(500, new { success = false, error = "获取历史记录失败" });
+            }
+        }
+
+        /// <summary>
+        /// 保存测试结果
+        /// </summary>
+        /// <param name="result">测试结果</param>
+        /// <returns>保存结果</returns>
+        [HttpPost("results")]
+        public async Task<IActionResult> SaveTestResult([FromBody] SaveTestResultRequest result)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(result.Requirement))
+                {
+                    return BadRequest(new { success = false, error = "测试需求不能为空" });
+                }
+
+                var resultId = Guid.NewGuid().ToString();
+                
+                _logger.LogInformation("保存测试结果: {Requirement}", result.Requirement);
+
+                // 这里应该保存到数据库，暂时返回成功响应
+                return Ok(new
+                {
+                    success = true,
+                    id = resultId
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "保存测试结果时发生错误");
+                return StatusCode(500, new { success = false, error = "保存测试结果失败" });
             }
         }
 
@@ -581,6 +860,69 @@ await DefaultTest.RunTest();";
             return defaultValue;
         }
 
+        /// <summary>
+        /// 验证代码质量
+        /// </summary>
+        private CodeQuality ValidateCodeQuality(string code)
+        {
+            var issues = new List<string>();
+            var suggestions = new List<string>();
+            var score = 100;
+
+            // 基本语法检查
+            if (!code.Contains("using System"))
+            {
+                issues.Add("缺少必要的using语句");
+                score -= 10;
+            }
+
+            if (!code.Contains("class ") && !code.Contains("static void Main"))
+            {
+                issues.Add("缺少主类或Main方法");
+                score -= 20;
+            }
+
+            // 异常处理检查
+            if (!code.Contains("try") || !code.Contains("catch"))
+            {
+                suggestions.Add("建议添加异常处理机制");
+                score -= 5;
+            }
+
+            // 资源释放检查
+            if (code.Contains("new ") && !code.Contains("using") && !code.Contains("Dispose"))
+            {
+                suggestions.Add("建议使用using语句或手动释放资源");
+                score -= 5;
+            }
+
+            // 代码长度检查
+            var lines = code.Split('\n').Length;
+            if (lines > 200)
+            {
+                suggestions.Add("代码较长，建议拆分为多个方法");
+                score -= 3;
+            }
+
+            // 注释检查
+            var commentLines = code.Split('\n').Where(line => 
+                line.Trim().StartsWith("//") || line.Trim().StartsWith("/*")
+            ).Count();
+            var commentRatio = (double)commentLines / lines;
+            if (commentRatio < 0.1)
+            {
+                suggestions.Add("建议增加代码注释以提高可读性");
+                score -= 2;
+            }
+
+            return new CodeQuality
+            {
+                Score = Math.Max(score, 0),
+                Issues = issues,
+                Suggestions = suggestions
+            };
+        }
+
         #endregion
     }
 
@@ -594,6 +936,40 @@ await DefaultTest.RunTest();";
     public class EndToEndTestRequest
     {
         public string UserInput { get; set; } = string.Empty;
+    }
+
+    public class GenerateCodeRequest
+    {
+        public string Requirement { get; set; } = string.Empty;
+        public string? DeviceType { get; set; }
+        public string? TestType { get; set; }
+        public string? TemplateId { get; set; }
+    }
+
+    public class SaveTemplateRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string DeviceType { get; set; } = string.Empty;
+        public string TestType { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+        public string[] Tags { get; set; } = Array.Empty<string>();
+    }
+
+    public class SaveTestResultRequest
+    {
+        public string Requirement { get; set; } = string.Empty;
+        public string GeneratedCode { get; set; } = string.Empty;
+        public object? ExecutionResult { get; set; }
+        public string DeviceType { get; set; } = string.Empty;
+        public string TestType { get; set; } = string.Empty;
+    }
+
+    public class CodeQuality
+    {
+        public int Score { get; set; }
+        public List<string> Issues { get; set; } = new();
+        public List<string> Suggestions { get; set; } = new();
     }
 
     public class EndToEndTestResult
