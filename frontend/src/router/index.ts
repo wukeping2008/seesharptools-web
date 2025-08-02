@@ -9,6 +9,16 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/HomeView.vue')
   },
   {
+    path: '/ai-control-generator',
+    name: 'AIControlGenerator',
+    component: () => import('../views/AIControlGeneratorTest.vue')
+  },
+    {
+      path: '/ai-test-platform',
+      name: 'AITestPlatform',
+      component: () => import('../views/AITestPlatform.vue')
+    },
+  {
     path: '/download',
     name: 'Download',
     component: () => import('../views/DownloadView.vue')

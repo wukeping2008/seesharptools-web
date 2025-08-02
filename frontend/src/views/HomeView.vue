@@ -5,12 +5,12 @@
       <div class="hero-content">
         <div class="hero-text">
           <h1 class="hero-title">
-            SeeSharpTools Web 版本
-            <span class="title-highlight">专业测试测量仪器控件库</span>
+            SeeSharp on Web
+            <span class="title-highlight">基于Web的AI智能模块仪器平台</span>
           </h1>
           <p class="hero-description">
-            基于 Vue 3 + TypeScript 构建的专业测试测量仪器界面控件库，
-            参考 SeeSharpTools 设计风格，为科学仪器和数据采集系统提供高质量的用户界面组件。
+            革命性的AI驱动测试测量平台！集成专业仪器控件库、智能代码生成和硬件驱动管理，
+            让您用自然语言描述测试需求，AI自动生成C#代码并直接调用简仪硬件进行实际测试。
           </p>
           
           <!-- AI特色功能突出显示 -->
@@ -20,21 +20,37 @@
               <span class="ai-text">AI驱动</span>
             </div>
             <div class="ai-content">
-              <h3 class="ai-title">🤖 AI智能控件生成器</h3>
+              <h3 class="ai-title">🚀 AI智能测试平台</h3>
               <p class="ai-description">
-                革命性的AI辅助开发工具！只需用自然语言描述需求，AI自动生成专业的Vue 3控件代码。
+                突破性的AI智能测试解决方案！用中文描述测试需求，AI自动生成C#测试代码，通过C# Runner MCP直接调用简仪硬件进行实际测试，支持JY5500信号发生器和JYUSB1601数据采集卡。
               </p>
-              <el-button type="primary" size="large" class="ai-cta" @click="router.push('/ai-control-generator')">
-                <el-icon><Cpu /></el-icon>
-                立即体验AI生成
-              </el-button>
+              <div class="ai-features">
+                <span class="ai-feature">🎯 自然语言需求分析</span>
+                <span class="ai-feature">🔧 智能代码生成</span>
+                <span class="ai-feature">⚡ 硬件直接调用</span>
+                <span class="ai-feature">📊 实时结果展示</span>
+              </div>
+              <div class="ai-actions">
+                <el-button type="primary" size="large" class="ai-cta primary" @click="router.push('/ai-test-platform')">
+                  <el-icon><Cpu /></el-icon>
+                  立即体验AI测试
+                </el-button>
+                <el-button size="large" class="ai-cta secondary" @click="router.push('/ai-control-generator')">
+                  <el-icon><Setting /></el-icon>
+                  AI控件生成器
+                </el-button>
+              </div>
             </div>
           </div>
           
           <div class="hero-actions">
-            <el-button type="primary" size="large" @click="scrollToModules">
+            <el-button type="primary" size="large" @click="router.push('/ai-test-platform')">
+              <el-icon><Cpu /></el-icon>
+              AI智能测试
+            </el-button>
+            <el-button size="large" @click="scrollToModules">
               <el-icon><DataAnalysis /></el-icon>
-              开始探索
+              探索控件库
             </el-button>
             <el-button size="large" @click="openGitHub">
               <el-icon><Link /></el-icon>
@@ -238,7 +254,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   DataAnalysis, TrendCharts, Setting, Monitor, Link,
-  Warning, Grid, Cpu, DataLine, Timer, ArrowDown, Right
+  Warning, Grid, Cpu, DataLine, Timer, ArrowDown, Right, Document
 } from '@element-plus/icons-vue'
 
 // 路由
@@ -249,130 +265,302 @@ const animatedValue = ref(1000.0)
 const waveformPath = ref('')
 const modulesSection = ref<HTMLElement>()
 
-// 前端控件分类
+// 前端控件库分类
 const frontendCategories = reactive([
   {
     id: 1,
-    title: '基础控件',
-    description: '仪表、指示器、控制器等基础界面组件',
+    title: '基础仪表控件',
+    description: '专业测控界面基础组件',
     icon: 'DataAnalysis',
-    path: '/instruments',
     count: 15,
     expanded: false,
     subcategories: [
-      { name: '仪表控件', path: '/instruments' },
-      { name: '指示控件', path: '/indicators' },
-      { name: '控制控件', path: '/controls' },
-      { name: '数字显示器', path: '/digital-display-test' },
-      { name: '开关测试', path: '/switch-test' },
-      { name: '按钮阵列', path: '/button-array-test' },
+      { name: '圆形仪表', path: '/instruments' },
       { name: '线性仪表', path: '/linear-gauge-test' },
+      { name: '数字显示器', path: '/digital-display-test' },
       { name: '温度计', path: '/thermometer-test' }
     ]
   },
   {
     id: 2,
-    title: '高性能图表',
-    description: 'StripChart、FFT频谱分析、专业测量工具',
-    icon: 'TrendCharts',
-    path: '/enhanced-stripchart-test',
-    count: 8,
+    title: '指示与控制',
+    description: '状态指示和交互控制组件',
+    icon: 'Warning',
+    count: 12,
     expanded: false,
     subcategories: [
-      { name: '高性能StripChart', path: '/enhanced-stripchart-test' },
-      { name: 'FFT频谱分析', path: '/spectrum-chart-test' },
-      { name: '频谱分析仪', path: '/spectrum' },
-      { name: '高级数学分析', path: '/advanced-easy-chart-test' },
-      { name: '专业测量工具', path: '/professional-easy-chart-test' },
-      { name: '双Y轴图表', path: '/dual-axis-easychart-test' },
-      { name: '波形图表', path: '/waveform' },
-      { name: '条带图', path: '/stripchart' },
-      { name: '增强图表', path: '/enhanced-charts' }
+      { name: 'LED指示灯', path: '/indicators' },
+      { name: '开关控件', path: '/switch-test' },
+      { name: '按钮阵列', path: '/button-array-test' },
+      { name: '控制面板', path: '/controls' }
     ]
   },
   {
     id: 3,
-    title: '模块仪器',
-    description: '示波器、万用表、信号发生器等专业仪器控件',
-    icon: 'Monitor',
-    path: '/instruments',
-    count: 6,
+    title: '图表可视化',
+    description: '实时数据可视化图表组件',
+    icon: 'TrendCharts',
+    count: 18,
     expanded: false,
     subcategories: [
-      { name: '数字示波器', path: '/oscilloscope-test' },
-      { name: '数字万用表', path: '/digital-multimeter-test' },
-      { name: '信号发生器', path: '/signal-generator-test' },
-      { name: '温度采集卡', path: '/temperature-acquisition-card-test' },
-      { name: 'DIO控制卡', path: '/dio-card-test' },
-      { name: '数据采集卡', path: '/data-acquisition' }
+      { name: 'StripChart实时图表', path: '/enhanced-stripchart-test' },
+      { name: 'FFT频谱分析', path: '/spectrum-chart-test' },
+      { name: '高级图表', path: '/advanced-easy-chart-test' },
+      { name: '专业图表', path: '/professional-easy-chart-test' },
+      { name: '双轴图表', path: '/dual-axis-easychart-test' },
+      { name: '波形显示', path: '/waveform' }
     ]
   },
   {
     id: 4,
-    title: 'AI智能生成',
-    description: '基于自然语言的AI控件生成系统',
-    icon: 'Cpu',
-    path: '/ai-control-generator',
-    count: 1,
+    title: '虚拟仪器',
+    description: '专业仪器控制界面组件',
+    icon: 'Monitor',
+    count: 10,
     expanded: false,
     subcategories: [
-      { name: 'AI控件生成器', path: '/ai-control-generator' }
+      { name: '数字示波器', path: '/oscilloscope-test' },
+      { name: '信号发生器', path: '/signal-generator-test' },
+      { name: '数字万用表', path: '/digital-multimeter-test' },
+      { name: '温度采集卡', path: '/temperature-acquisition-card-test' },
+      { name: 'DIO控制卡', path: '/dio-card-test' }
     ]
   }
 ])
 
-// 后端集成分类
-const backendCategories = [
+// 后端集成平台分类
+const backendCategories = reactive([
   {
     id: 1,
-    title: '前后端集成',
-    description: '前端与后端API和SignalR的完整集成功能',
-    icon: 'Link',
-    path: '/backend-integration-test'
+    title: 'AI智能测试平台',
+    description: '核心AI驱动测试解决方案',
+    icon: 'Cpu',
+    path: '/ai-test-platform',
+    status: '已实现'
   },
   {
     id: 2,
-    title: '数据存储回放',
-    description: '高性能数据存储、历史数据查询、数据回放系统',
-    icon: 'DataAnalysis',
-    path: '/data-storage-test'
+    title: 'C# Runner集成',
+    description: 'MCP协议C#代码执行引擎',
+    icon: 'Timer',
+    path: '/csharp-runner-test',
+    status: '已实现'
   },
   {
     id: 3,
     title: '硬件驱动管理',
-    description: 'MISD标准化接口层、驱动管理、设备发现',
-    icon: 'Cpu',
-    path: '/hardware-driver-test'
+    description: 'MISD标准化硬件驱动系统',
+    icon: 'Setting',
+    path: '/hardware-driver-test',
+    status: '已实现'
   },
   {
     id: 4,
-    title: '性能监控仪表板',
-    description: '实时系统性能监控、Prometheus指标、健康检查',
-    icon: 'Monitor',
-    path: '/performance-monitoring'
+    title: '数据采集引擎',
+    description: '高性能实时数据采集处理',
+    icon: 'DataLine',
+    path: '/backend-integration-test',
+    status: '已实现'
   },
   {
     id: 5,
-    title: '数据分析与报告',
-    description: '统计分析、趋势预测、异常检测、智能报告生成',
-    icon: 'TrendCharts',
-    path: '/data-analysis-test'
+    title: '数据存储系统',
+    description: '海量测试数据存储与回放',
+    icon: 'Grid',
+    path: '/data-storage-test',
+    status: '已实现'
   },
   {
     id: 6,
-    title: '实时数据采集',
-    description: '多线程数据采集引擎、SignalR实时通信',
-    icon: 'DataLine',
-    path: '/backend-integration-test'
+    title: '性能监控平台',
+    description: '全方位系统性能监控',
+    icon: 'Monitor',
+    path: '/performance-monitoring',
+    status: '已实现'
   },
   {
     id: 7,
-    title: '项目开发器',
-    description: '可视化测控项目开发环境，拖拽式界面设计',
+    title: '数据分析服务',
+    description: '智能数据分析与处理',
+    icon: 'DataAnalysis',
+    path: '/data-analysis-test',
+    status: '已实现'
+  },
+  {
+    id: 8,
+    title: 'AI控件生成器',
+    description: '智能UI控件生成工具',
     icon: 'Setting',
-    path: '/project-developer'
+    path: '/ai-control-generator',
+    status: '已实现'
+  },
+  {
+    id: 9,
+    title: '项目开发者工具',
+    description: '开发者辅助工具集',
+    icon: 'Setting',
+    path: '/project-developer',
+    status: '已实现'
   }
-]
+])
+
+// 核心功能模块（已实现和开发中）
+const coreModules = reactive([
+  {
+    id: 1,
+    title: 'AI智能测试平台',
+    description: '核心AI驱动测试解决方案，支持自然语言测试需求分析',
+    icon: 'Cpu',
+    status: '已实现',
+    progress: 85,
+    path: '/ai-test-platform',
+    features: [
+      '🎯 中文需求智能分析',
+      '🔧 C#测试代码生成',
+      '⚡ 硬件直接调用',
+      '📊 实时结果展示'
+    ],
+    badge: 'NEW'
+  },
+  {
+    id: 2,
+    title: 'C# Runner集成',
+    description: 'MCP协议集成的C#代码执行引擎，连接AI与硬件的桥梁',
+    icon: 'Timer',
+    status: '已实现',
+    progress: 90,
+    path: '/csharp-runner-test',
+    features: [
+      '🚀 MCP协议支持',
+      '💻 C#代码实时执行',
+      '🔗 硬件驱动调用',
+      '📈 执行状态监控'
+    ],
+    badge: 'CORE'
+  },
+  {
+    id: 3,
+    title: '硬件驱动管理',
+    description: 'MISD标准化硬件驱动管理系统，支持简仪全系列设备',
+    icon: 'Cpu',
+    status: '已实现',
+    progress: 80,
+    path: '/hardware-driver-test',
+    features: [
+      '📡 JY5500信号发生器',
+      '📊 JYUSB1601数据采集',
+      '🔄 设备状态监控',
+      '⚙️ 驱动自动管理'
+    ],
+    badge: 'STABLE'
+  }
+])
+
+// 前端控件库（丰富的UI组件）
+const frontendLibrary = reactive([
+  {
+    id: 1,
+    title: '基础仪表控件',
+    description: '专业测控界面基础组件库',
+    icon: 'DataAnalysis',
+    status: '已实现',
+    progress: 95,
+    path: '/instruments',
+    count: '15+',
+    items: [
+      '圆形仪表', '线性仪表', '数字显示器', 
+      'LED指示灯', '开关控件', '按钮阵列'
+    ]
+  },
+  {
+    id: 2,
+    title: '高性能图表',
+    description: '实时数据可视化图表组件',
+    icon: 'TrendCharts',
+    status: '已实现',
+    progress: 90,
+    path: '/enhanced-stripchart-test',
+    count: '10+',
+    items: [
+      'StripChart实时图表', 'FFT频谱分析', 
+      '波形显示', '双Y轴图表', '专业测量工具'
+    ]
+  },
+  {
+    id: 3,
+    title: '模块仪器界面',
+    description: '专业仪器控制界面组件',
+    icon: 'Monitor',
+    status: '开发中',
+    progress: 70,
+    path: '/oscilloscope-test',
+    count: '6+',
+    items: [
+      '数字示波器', '信号发生器', '数字万用表',
+      '温度采集卡', 'DIO控制卡'
+    ]
+  }
+])
+
+// 后端服务架构（核心服务支撑）
+const backendServices = reactive([
+  {
+    id: 1,
+    title: '数据采集引擎',
+    description: '高性能多线程实时数据采集处理',
+    icon: 'DataLine',
+    status: '已实现',
+    progress: 85,
+    path: '/backend-integration-test',
+    capabilities: [
+      '多线程并发采集', 'SignalR实时推送',
+      '数据质量检查', '缓冲区优化管理'
+    ]
+  },
+  {
+    id: 2,
+    title: '数据存储系统',
+    description: '海量测试数据存储与历史回放',
+    icon: 'DataAnalysis',
+    status: '已实现',
+    progress: 80,
+    path: '/data-storage-test',
+    capabilities: [
+      '高效数据压缩', '历史数据查询',
+      '数据回放功能', '存储优化管理'
+    ]
+  },
+  {
+    id: 3,
+    title: '系统监控平台',
+    description: '全方位系统性能监控与运维',
+    icon: 'Monitor',
+    status: '已实现',
+    progress: 75,
+    path: '/performance-monitoring',
+    capabilities: [
+      'Prometheus指标', '健康状态检查',
+      '性能实时监控', '错误日志追踪'
+    ]
+  }
+])
+
+// AI增强功能（创新特色）
+const aiFeatures = reactive([
+  {
+    id: 1,
+    title: 'AI控件生成器',
+    description: '基于自然语言的智能UI控件生成',
+    icon: 'Setting',
+    status: '已实现',
+    progress: 70,
+    path: '/ai-control-generator',
+    highlights: [
+      '自然语言描述', '智能代码生成',
+      '实时预览效果', '一键导出代码'
+    ]
+  }
+])
 
 // 动画定时器
 let animationTimer: number | null = null
@@ -557,17 +745,33 @@ onUnmounted(() => {
         }
         
         .ai-cta {
-          background: linear-gradient(135deg, var(--primary-color), #A23B72);
           border: none;
           padding: 12px 24px;
           font-size: 16px;
           font-weight: 600;
-          box-shadow: 0 4px 15px rgba(46, 134, 171, 0.3);
           transition: all 0.3s ease;
           
-          &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(46, 134, 171, 0.4);
+          &.primary {
+            background: linear-gradient(135deg, var(--primary-color), #A23B72);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 134, 171, 0.3);
+            
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 6px 20px rgba(46, 134, 171, 0.4);
+            }
+          }
+          
+          &.secondary {
+            background: rgba(46, 134, 171, 0.1);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            
+            &:hover {
+              background: rgba(46, 134, 171, 0.2);
+              transform: translateY(-2px);
+              box-shadow: 0 4px 15px rgba(46, 134, 171, 0.2);
+            }
           }
         }
       }

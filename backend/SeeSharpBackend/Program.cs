@@ -135,6 +135,8 @@ builder.Services.AddScoped<ICSharpRunnerService, CSharpRunnerService>();
 
 // 注册 AI 智能服务
 builder.Services.AddScoped<SeeSharpBackend.Services.AI.INaturalLanguageProcessor, SeeSharpBackend.Services.AI.NaturalLanguageProcessor>();
+builder.Services.AddScoped<SeeSharpBackend.Services.AI.ISmartCodeGenerator, SeeSharpBackend.Services.AI.SmartCodeGenerator>();
+builder.Services.AddScoped<SeeSharpBackend.Services.AI.ITemplateRepository, SeeSharpBackend.Services.AI.TemplateRepository>();
 
 // 配置AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));

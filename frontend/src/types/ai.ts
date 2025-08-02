@@ -20,9 +20,62 @@ export interface AIControlResponse {
 
 // 代码质量评估
 export interface CodeQuality {
-  score: number      // 质量分数 0-100
-  issues: string[]   // 发现的问题
-  suggestions: string[] // 改进建议
+  score: number
+  issues?: string[]
+  suggestions?: string[]
+}
+
+export interface TestRequirement {
+  id?: string
+  description: string
+  deviceType?: string
+  testType?: string
+  parameters?: Record<string, any>
+  priority?: 'low' | 'medium' | 'high'
+  createdAt?: string
+}
+
+export interface TestTemplate {
+  id: string
+  name: string
+  description: string
+  deviceType: string
+  category: string
+  complexity: 'simple' | 'moderate' | 'complex'
+  code: string
+  parameters: Record<string, any>
+  tags: string[]
+  rating: number
+  usageCount: number
+  isBuiltIn: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TestExecutionResult {
+  success: boolean
+  data?: {
+    deviceType: string
+    analysisType: string
+    timestamp: string
+    spectrumData?: number[]
+    measurements?: Record<string, any>
+    summary?: string
+  }
+  error?: string
+  output?: string
+}
+
+export interface AITestPlatformState {
+  testRequirement: string
+  selectedDevice: string
+  selectedTestType: string
+  selectedTemplate: string
+  generatedCode: string
+  isGenerating: boolean
+  isExecuting: boolean
+  codeQuality: CodeQuality | null
+  executionResult: TestExecutionResult | null
 }
 
 // 预定义控件模板

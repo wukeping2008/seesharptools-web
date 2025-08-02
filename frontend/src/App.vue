@@ -5,16 +5,23 @@
       <div class="header-content">
         <div class="logo-section">
           <div class="logo">
-            <el-icon class="logo-icon"><Monitor /></el-icon>
-            <span class="logo-text">测试测量仪器控件库</span>
+            <el-icon class="logo-icon"><Cpu /></el-icon>
+            <span class="logo-text">SeeSharp on Web</span>
           </div>
-          <div class="subtitle">Professional Test & Measurement Instrument Controls</div>
+          <div class="subtitle">基于Web的AI智能模块仪器平台</div>
         </div>
         
         <nav class="main-nav">
           <router-link to="/" class="nav-item" active-class="active">
             <el-icon><House /></el-icon>
             <span>首页</span>
+          </router-link>
+          
+          <!-- AI智能测试平台 - 突出显示 -->
+          <router-link to="/ai-test-platform" class="nav-item ai-featured" active-class="active">
+            <el-icon><Cpu /></el-icon>
+            <span>AI智能测试平台</span>
+            <div class="featured-badge">NEW</div>
           </router-link>
           
           <!-- 基础控件 -->
@@ -197,7 +204,7 @@
           <!-- 后端集成 -->
           <el-dropdown class="nav-dropdown" trigger="hover">
             <div class="nav-item dropdown-trigger">
-              <el-icon><Cpu /></el-icon>
+              <el-icon><Link /></el-icon>
               <span>后端集成</span>
               <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
             </div>
@@ -216,9 +223,27 @@
                   </router-link>
                 </el-dropdown-item>
                 <el-dropdown-item>
+                  <router-link to="/hardware-driver-test" class="dropdown-link">
+                    <el-icon><Cpu /></el-icon>
+                    <span>硬件驱动管理</span>
+                  </router-link>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <router-link to="/performance-monitoring" class="dropdown-link">
+                    <el-icon><Monitor /></el-icon>
+                    <span>性能监控</span>
+                  </router-link>
+                </el-dropdown-item>
+                <el-dropdown-item>
                   <router-link to="/ai-control-generator" class="dropdown-link">
                     <el-icon><Cpu /></el-icon>
-                    <span>AI智能生成</span>
+                    <span>AI控件生成器</span>
+                  </router-link>
+                </el-dropdown-item>
+                <el-dropdown-item>
+                  <router-link to="/csharp-runner-test" class="dropdown-link">
+                    <el-icon><Setting /></el-icon>
+                    <span>C# Runner测试</span>
                   </router-link>
                 </el-dropdown-item>
               </el-dropdown-menu>
@@ -365,6 +390,7 @@ const openDocs = () => {
       font-weight: 500;
       font-size: 14px;
       transition: all 0.2s ease;
+      position: relative;
 
       &:hover {
         background: rgba(46, 134, 171, 0.1);
@@ -379,6 +405,54 @@ const openDocs = () => {
 
       .el-icon {
         font-size: 16px;
+      }
+
+      // AI智能测试平台特色样式
+      &.ai-featured {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        position: relative;
+        overflow: hidden;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+          transition: left 0.5s;
+        }
+
+        &:hover::before {
+          left: 100%;
+        }
+
+        &:hover {
+          background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        &.active {
+          background: linear-gradient(135deg, #5a52a5 0%, #7b68ee 100%);
+        }
+
+        .featured-badge {
+          position: absolute;
+          top: -6px;
+          right: -6px;
+          background: #ff4757;
+          color: white;
+          font-size: 10px;
+          font-weight: bold;
+          padding: 2px 6px;
+          border-radius: 8px;
+          transform: scale(0.8);
+          animation: pulse 2s infinite;
+        }
       }
     }
 
@@ -479,6 +553,19 @@ const openDocs = () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+// AI特色功能脉冲动画
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.0);
+  }
+  100% {
+    transform: scale(0.8);
+  }
 }
 
 // 下拉菜单样式
