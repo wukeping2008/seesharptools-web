@@ -13,11 +13,16 @@ const routes: Array<RouteRecordRaw> = [
     name: 'AIControlGenerator',
     component: () => import('../views/AIControlGeneratorTest.vue')
   },
-    {
-      path: '/ai-test-platform',
-      name: 'AITestPlatform',
-      component: () => import('../views/AITestPlatform.vue')
-    },
+  {
+    path: '/ai-test-platform',
+    name: 'AITestPlatform',
+    component: () => import('../views/AITestPlatform.vue')
+  },
+  {
+    path: '/comprehensive-test',
+    name: 'ComprehensiveTest',
+    component: () => import('../views/ComprehensiveTestView.vue')
+  },
   {
     path: '/download',
     name: 'Download',
@@ -222,6 +227,16 @@ const routes: Array<RouteRecordRaw> = [
       path: '/csharp-runner-test',
       name: 'CSharpRunnerTest',
       component: () => import('@/views/CSharpRunnerTest.vue')
+    },
+    {
+      path: '/api-key-management',
+      name: 'ApiKeyManagement',
+      component: () => import('@/views/ApiKeyManagement.vue')
+    },
+    {
+      path: '/test-history',
+      name: 'TestHistory',
+      component: () => import('@/views/TestHistoryView.vue')
     },
 ]
 

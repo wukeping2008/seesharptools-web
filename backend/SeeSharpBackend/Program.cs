@@ -6,13 +6,20 @@ using SeeSharpBackend.Services.Connection;
 using SeeSharpBackend.Services.DataStorage;
 using SeeSharpBackend.Services.Monitoring;
 using SeeSharpBackend.Services.CSharpRunner;
+using SeeSharpBackend.Services;
 using SeeSharpBackend.Hubs;
 using Serilog;
 using System.Reflection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Prometheus;
+using SeeSharpBackend.Services.AI;
+using Microsoft.EntityFrameworkCore;
+using SeeSharpBackend.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 添加本地配置文件支持
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // 配置Serilog日志
 Log.Logger = new LoggerConfiguration()
@@ -131,7 +138,6 @@ builder.Services.AddSingleton<IPerformanceMonitoringService, PerformanceMonitori
 // 注册 C# Runner 服务
 builder.Services.Configure<CSharpRunnerOptions>(builder.Configuration.GetSection("CSharpRunner"));
 builder.Services.AddHttpClient<ICSharpRunnerService, CSharpRunnerService>();
-builder.Services.AddScoped<ICSharpRunnerService, CSharpRunnerService>();
 
 // 注册 AI 智能服务
 builder.Services.AddScoped<SeeSharpBackend.Services.AI.INaturalLanguageProcessor, SeeSharpBackend.Services.AI.NaturalLanguageProcessor>();
@@ -140,6 +146,10 @@ builder.Services.AddScoped<SeeSharpBackend.Services.AI.ITemplateRepository, SeeS
 
 // 配置AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
+
+// 数据库配置
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseInMemoryDatabase("SeeSharpDb"));
 
 // 配置健康检查
 builder.Services.AddHealthChecks()
@@ -157,6 +167,19 @@ builder.Services.AddMemoryCache();
 
 // 注册HttpClient服务（用于AI控制器调用Claude API）
 builder.Services.AddHttpClient();
+
+// 注册API密钥服务
+builder.Services.AddScoped<IApiKeyService, ApiKeyService>();
+
+// 注册硬件服务
+builder.Services.AddScoped<SeeSharpBackend.Services.Hardware.IHardwareErrorHandler, SeeSharpBackend.Services.Hardware.HardwareErrorHandler>();
+builder.Services.AddSingleton<SeeSharpBackend.Services.Hardware.IDeviceAutoDetectionService, SeeSharpBackend.Services.Hardware.DeviceAutoDetectionService>();
+
+// 注册测试执行服务
+builder.Services.AddScoped<SeeSharpBackend.Services.TestExecution.ITestExecutionService, SeeSharpBackend.Services.TestExecution.TestExecutionService>();
+
+// 注册代码版本管理服务
+builder.Services.AddScoped<SeeSharpBackend.Services.CodeVersioning.ICodeVersionService, SeeSharpBackend.Services.CodeVersioning.CodeVersionService>();
 
 // 配置后台服务
 builder.Services.AddHostedService<MISDInitializationService>();

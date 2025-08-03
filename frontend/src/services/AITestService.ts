@@ -102,15 +102,15 @@ export class AITestService {
   static async executeTestCode(code: string) {
     try {
       const response = await backendApi.post('/api/csharp-runner/execute', {
-        code,
-        enableVerboseOutput: true,
-        timeout: 30000
+        Code: code,
+        Timeout: 30000
       })
       return {
-        success: response.success,
-        result: response.result,
-        error: response.error,
-        output: response.output
+        success: response.Success,
+        result: response.Output,
+        error: response.Error,
+        output: response.Output,
+        elapsedMs: response.ElapsedMilliseconds
       }
     } catch (error) {
       console.error('执行测试代码失败:', error)

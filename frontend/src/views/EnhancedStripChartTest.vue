@@ -2,7 +2,7 @@
   <div class="enhanced-strip-chart-test">
     <div class="test-header">
       <h1>高性能StripChart测试</h1>
-      <p>WebGL渲染 + 多级缓存 + 1GS/s数据流支持</p>
+      <p>Canvas 2D渲染 + 实时数据流 + 多通道支持</p>
     </div>
 
     <div class="test-controls">
@@ -124,7 +124,7 @@
                 <el-icon><Monitor /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ performanceMetrics.memoryUsage.toFixed(1) }}MB</div>
+                <div class="stat-value">{{ formatMemoryUsage(performanceMetrics.totalDataPoints) }}</div>
                 <div class="stat-label">内存使用</div>
               </div>
             </div>
@@ -138,8 +138,8 @@
                 <el-icon><PieChart /></el-icon>
               </div>
               <div class="stat-info">
-                <div class="stat-value">{{ (performanceMetrics.compressionRatio * 100).toFixed(1) }}%</div>
-                <div class="stat-label">压缩比</div>
+                <div class="stat-value">{{ formatNumber(performanceMetrics.totalDataPoints) }}</div>
+                <div class="stat-label">数据点数</div>
               </div>
             </div>
           </el-card>
@@ -199,22 +199,22 @@
         <el-row :gutter="16">
           <el-col :span="8">
             <div class="tech-item">
-              <h4><el-icon><Lightning /></el-icon> WebGL渲染</h4>
-              <p>使用WebGL进行硬件加速渲染，支持大数据量实时显示，渲染性能提升10-100倍。</p>
+              <h4><el-icon><Lightning /></el-icon> Canvas 2D渲染</h4>
+              <p>使用Canvas 2D API进行高效渲染，确保良好的兼容性和稳定性。</p>
             </div>
           </el-col>
           
           <el-col :span="8">
             <div class="tech-item">
-              <h4><el-icon><DataBoard /></el-icon> 多级缓存</h4>
-              <p>L1/L2/L3三级缓存架构，智能数据压缩，支持TB级数据管理。</p>
+              <h4><el-icon><DataBoard /></el-icon> 智能缓存</h4>
+              <p>自动管理数据缓存，按时间窗口清理过期数据，优化内存使用。</p>
             </div>
           </el-col>
           
           <el-col :span="8">
             <div class="tech-item">
-              <h4><el-icon><Cpu /></el-icon> LTTB压缩</h4>
-              <p>Largest Triangle Three Buckets算法，保持数据视觉特征的同时大幅减少数据点。</p>
+              <h4><el-icon><Cpu /></el-icon> 数据压缩</h4>
+              <p>智能数据点管理，限制缓存大小，保持流畅的实时性能。</p>
             </div>
           </el-col>
         </el-row>
@@ -223,7 +223,7 @@
           <el-col :span="8">
             <div class="tech-item">
               <h4><el-icon><Timer /></el-icon> 实时性能</h4>
-              <p>支持1GS/s数据率，延迟<10ms，60fps稳定渲染。</p>
+              <p>60fps稳定渲染，低延迟数据更新，流畅的波形显示体验。</p>
             </div>
           </el-col>
           
@@ -237,7 +237,7 @@
           <el-col :span="8">
             <div class="tech-item">
               <h4><el-icon><Setting /></el-icon> 智能优化</h4>
-              <p>自适应LOD、视口裁剪、内存管理等多种优化策略。</p>
+              <p>自适应缩放、网格背景、响应式设计等多种优化策略。</p>
             </div>
           </el-col>
         </el-row>
@@ -441,6 +441,21 @@ const formatNumber = (num: number): string => {
     return `${(num / 1000).toFixed(1)}K`
   }
   return num.toString()
+}
+
+const formatMemoryUsage = (dataPoints: number): string => {
+  // 估算内存使用：每个数据点约16字节 (timestamp + value + 额外开销)
+  const bytesPerPoint = 16
+  const totalBytes = dataPoints * bytesPerPoint
+  const megaBytes = totalBytes / (1024 * 1024)
+  
+  if (megaBytes < 1) {
+    return `${(megaBytes * 1024).toFixed(1)}KB`
+  } else if (megaBytes < 1024) {
+    return `${megaBytes.toFixed(1)}MB`
+  } else {
+    return `${(megaBytes / 1024).toFixed(1)}GB`
+  }
 }
 
 // 生命周期

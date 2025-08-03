@@ -130,8 +130,8 @@
     <!-- 主要模块 -->
     <section class="modules-section" ref="modulesSection">
       <div class="section-header">
-        <h2 class="section-title">主要模块</h2>
-        <p class="section-subtitle">前端控件库 + 后端硬件集成平台</p>
+        <h2 class="section-title">核心功能模块</h2>
+        <p class="section-subtitle">🚀 AI驱动的智能测试平台 + 60+ 专业控件库 + MISD标准化硬件集成</p>
       </div>
       
       <div class="modules-grid">
@@ -142,8 +142,8 @@
               <el-icon><Monitor /></el-icon>
             </div>
             <div class="module-info">
-              <h3 class="module-title">前端控件库</h3>
-              <p class="module-subtitle">专业测控界面组件</p>
+              <h3 class="module-title">🎛️ 前端控件库</h3>
+              <p class="module-subtitle">60+ 专业测控界面组件</p>
             </div>
           </div>
           
@@ -196,8 +196,8 @@
               <el-icon><Cpu /></el-icon>
             </div>
             <div class="module-info">
-              <h3 class="module-title">后端集成平台</h3>
-              <p class="module-subtitle">硬件驱动与数据处理</p>
+              <h3 class="module-title">🚀 AI智能后端平台</h3>
+              <p class="module-subtitle">DeepSeek AI + MISD标准化硬件驱动</p>
             </div>
           </div>
           
@@ -328,76 +328,94 @@ const frontendCategories = reactive([
   }
 ])
 
-// 后端集成平台分类
-const backendCategories = reactive([
+// AI核心模块 - 突出显示
+const aiCoreModules = reactive([
   {
     id: 1,
     title: 'AI智能测试平台',
-    description: '核心AI驱动测试解决方案',
+    description: '突破性的AI驱动测试解决方案！用中文描述测试需求，AI自动生成C#代码并直接调用简仪硬件执行测试',
     icon: 'Cpu',
     path: '/ai-test-platform',
-    status: '已实现'
+    badge: 'NEW',
+    progress: 95,
+    features: [
+      '🎯 DeepSeek AI集成',
+      '🔧 智能代码生成', 
+      '⚡ 硬件直接调用',
+      '📊 实时结果展示'
+    ]
   },
   {
     id: 2,
-    title: 'C# Runner集成',
-    description: 'MCP协议C#代码执行引擎',
+    title: 'C# Runner MCP集成',
+    description: 'AI与硬件连接的核心桥梁！基于MCP协议的C#代码执行引擎，实现从AI生成代码到硬件执行的无缝衔接',
     icon: 'Timer',
     path: '/csharp-runner-test',
-    status: '已实现'
-  },
+    badge: 'CORE',
+    progress: 95,
+    features: [
+      '🚀 MCP协议支持',
+      '💻 实时代码执行',
+      '🔗 设备模板内置',
+      '📈 执行状态监控'
+    ]
+  }
+])
+
+// 后端服务架构分类
+const backendCategories = reactive([
   {
-    id: 3,
+    id: 1,
     title: '硬件驱动管理',
-    description: 'MISD标准化硬件驱动系统',
+    description: 'MISD标准化硬件驱动系统，支持JY5500/JYUSB1601',
     icon: 'Setting',
     path: '/hardware-driver-test',
     status: '已实现'
   },
   {
-    id: 4,
+    id: 2,
     title: '数据采集引擎',
-    description: '高性能实时数据采集处理',
+    description: '高性能多线程实时数据采集处理',
     icon: 'DataLine',
     path: '/backend-integration-test',
     status: '已实现'
   },
   {
-    id: 5,
+    id: 3,
     title: '数据存储系统',
-    description: '海量测试数据存储与回放',
+    description: '海量测试数据存储与历史回放',
     icon: 'Grid',
     path: '/data-storage-test',
     status: '已实现'
   },
   {
-    id: 6,
+    id: 4,
     title: '性能监控平台',
-    description: '全方位系统性能监控',
+    description: '全方位系统性能监控与运维',
     icon: 'Monitor',
     path: '/performance-monitoring',
     status: '已实现'
   },
   {
-    id: 7,
+    id: 5,
     title: '数据分析服务',
-    description: '智能数据分析与处理',
+    description: '智能数据分析与处理算法',
     icon: 'DataAnalysis',
     path: '/data-analysis-test',
     status: '已实现'
   },
   {
-    id: 8,
+    id: 6,
     title: 'AI控件生成器',
-    description: '智能UI控件生成工具',
+    description: '基于自然语言的智能UI控件生成',
     icon: 'Setting',
     path: '/ai-control-generator',
     status: '已实现'
   },
   {
-    id: 9,
+    id: 7,
     title: '项目开发者工具',
-    description: '开发者辅助工具集',
+    description: '完整的开发者辅助工具集',
     icon: 'Setting',
     path: '/project-developer',
     status: '已实现'

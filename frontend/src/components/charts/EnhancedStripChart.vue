@@ -30,11 +30,6 @@
           <el-option label="30秒" value="30s" />
           <el-option label="1分钟" value="1m" />
         </el-select>
-        
-        <el-select v-model="renderMode" @change="onRenderModeChange" size="small" style="width: 100px; margin-left: 8px;">
-          <el-option label="WebGL" value="webgl" />
-          <el-option label="Canvas" value="canvas" />
-        </el-select>
       </div>
       
       <div class="toolbar-right">
@@ -46,16 +41,6 @@
         <el-tooltip content="通道配置">
           <el-button size="small" @click="showChannelConfig = true">
             <el-icon><Setting /></el-icon>
-          </el-button>
-        </el-tooltip>
-        <el-tooltip content="导出数据">
-          <el-button size="small" @click="exportData">
-            <el-icon><Download /></el-icon>
-          </el-button>
-        </el-tooltip>
-        <el-tooltip content="全屏显示">
-          <el-button size="small" @click="toggleFullscreen">
-            <el-icon><FullScreen /></el-icon>
           </el-button>
         </el-tooltip>
       </div>
@@ -93,40 +78,8 @@
             <span class="metric-value">{{ formatDataRate(dataRate) }}</span>
           </div>
           <div class="metric-item">
-            <span class="metric-label">内存使用:</span>
-            <span class="metric-value" :class="{ warning: memoryUsage > 500, error: memoryUsage > 1000 }">
-              {{ memoryUsage.toFixed(1) }}MB
-            </span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">压缩比:</span>
-            <span class="metric-value">{{ (compressionRatio * 100).toFixed(1) }}%</span>
-          </div>
-          <div class="metric-item">
             <span class="metric-label">数据点数:</span>
             <span class="metric-value">{{ formatNumber(totalDataPoints) }}</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">渲染模式:</span>
-            <span class="metric-value">{{ renderMode.toUpperCase() }}</span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 游标和测量 -->
-      <div class="chart-cursors" v-if="cursorsVisible">
-        <div 
-          v-for="cursor in cursors" 
-          :key="cursor.id"
-          class="cursor"
-          :style="{ left: cursor.x + 'px' }"
-        >
-          <div class="cursor-line"></div>
-          <div class="cursor-label">
-            <div>时间: {{ formatTime(cursor.time) }}</div>
-            <div v-for="(value, index) in cursor.values" :key="index">
-              CH{{ index + 1 }}: {{ formatValue(value) }}
-            </div>
           </div>
         </div>
       </div>
@@ -156,7 +109,7 @@
             />
             <div 
               class="channel-color"
-              :style="{ backgroundColor: rgbaToHex(channel.color) }"
+              :style="{ backgroundColor: channel.colorHex }"
               @click="showColorPicker(index)"
             />
             <el-input 
@@ -180,7 +133,7 @@
             <el-button size="small" @click="resetChannelStats(index)">
               <el-icon><Refresh /></el-icon>
             </el-button>
-            <el-button size="small" type="danger" @click="removeChannel(index)">
+            <el-button size="small" type="danger" @click="removeChannel(index)" v-if="channels.length > 1">
               <el-icon><Delete /></el-icon>
             </el-button>
           </div>
@@ -192,13 +145,11 @@
     <div class="status-bar" v-if="showStatus">
       <div class="status-left">
         <span>数据率: {{ formatDataRate(dataRate) }}</span>
-        <span>缓冲区: {{ bufferUsage.toFixed(1) }}%</span>
         <span>通道数: {{ activeChannelCount }}</span>
         <span>数据点: {{ formatNumber(totalDataPoints) }}</span>
       </div>
       <div class="status-right">
         <span>渲染: {{ renderFps }} fps</span>
-        <span>内存: {{ memoryUsage.toFixed(1) }} MB</span>
         <span>时间: {{ currentTime }}</span>
       </div>
     </div>
@@ -233,7 +184,7 @@
           </el-table-column>
           <el-table-column label="操作" width="80">
             <template #default="scope">
-              <el-button size="small" type="danger" @click="removeChannel(scope.$index)">
+              <el-button size="small" type="danger" @click="removeChannel(scope.$index)" v-if="channels.length > 1">
                 删除
               </el-button>
             </template>
@@ -249,34 +200,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { 
-  VideoPlay, VideoPause, Refresh, Delete, Setting, Download, 
-  FullScreen, Plus, Monitor, Close
+  VideoPlay, VideoPause, Refresh, Delete, Setting,
+  Plus, Monitor, Close
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { WebGLRenderer, type WebGLRendererOptions, type Viewport, type ChannelData as WebGLChannelData } from '@/utils/webgl/WebGLRenderer'
-import { DataBufferManager, type BufferConfig, type DataPoint, type TimeRange } from '@/utils/data/DataBufferManager'
 
 // 通道配置接口
 interface ChannelConfig {
   id: number
   name: string
-  color: [number, number, number, number] // RGBA
-  colorHex: string // 用于颜色选择器
+  colorHex: string
   visible: boolean
   lineWidth: number
   currentValue: number
   maxValue: number
   minValue: number
-}
-
-// 游标接口
-interface Cursor {
-  id: number
-  x: number
-  time: number
-  values: number[]
 }
 
 // Props
@@ -294,7 +234,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   maxChannels: 32,
   bufferSize: 1000000,
-  maxSampleRate: 1000000000, // 1GS/s
+  maxSampleRate: 1000000000,
   showToolbar: true,
   showChannels: true,
   showStatus: true,
@@ -318,21 +258,17 @@ const isRealtime = ref(true)
 const showChannelConfig = ref(false)
 const showPerformancePanel = ref(false)
 const timeWindow = ref('10s')
-const renderMode = ref<'webgl' | 'canvas'>('webgl')
 const currentTime = ref('')
-const cursorsVisible = ref(false)
-const cursors = ref<Cursor[]>([])
 
-// 渲染器和数据管理器
-let webglRenderer: WebGLRenderer | null = null
-let dataBufferManager: DataBufferManager | null = null
+// Canvas 2D 渲染
+let ctx: CanvasRenderingContext2D | null = null
+let animationId: number | null = null
 
 // 通道数据
 const channels = ref<ChannelConfig[]>([
   {
     id: 0,
     name: 'CH1',
-    color: [1.0, 0.84, 0.0, 1.0], // 金色
     colorHex: '#FFD700',
     visible: true,
     lineWidth: 2,
@@ -343,7 +279,6 @@ const channels = ref<ChannelConfig[]>([
   {
     id: 1,
     name: 'CH2',
-    color: [0.0, 0.81, 0.82, 1.0], // 青色
     colorHex: '#00CED1',
     visible: true,
     lineWidth: 2,
@@ -355,16 +290,17 @@ const channels = ref<ChannelConfig[]>([
 
 // 性能监控
 const renderFps = ref(60)
-const dataRate = ref(0)
-const memoryUsage = ref(0)
-const compressionRatio = ref(1)
+const dataRate = ref(1000000) 
 const totalDataPoints = ref(0)
-const bufferUsage = ref(0)
+
+// 数据存储
+const channelData = ref<Map<number, Array<{x: number, y: number}>>>(new Map())
 
 // 定时器
 let dataTimer: number | null = null
 let timeTimer: number | null = null
-let renderTimer: number | null = null
+let frameTime = 0
+let frameCount = 0
 
 // 计算属性
 const activeChannelCount = computed(() => {
@@ -384,75 +320,39 @@ const getTimeWindowMs = (window: string): number => {
   }
 }
 
-// 初始化
-const initialize = async () => {
+// 初始化Canvas
+const initialize = () => {
   if (!chartCanvas.value) return
 
-  try {
-    // 初始化WebGL渲染器
-    const webglOptions: WebGLRendererOptions = {
-      canvas: chartCanvas.value,
-      maxPoints: 100000,
-      maxChannels: props.maxChannels,
-      enableAntiAliasing: true,
-      enableLOD: true
-    }
-    
-    webglRenderer = new WebGLRenderer(webglOptions)
-    
-    // 初始化数据缓冲管理器
-    const bufferConfig: BufferConfig = {
-      maxChannels: props.maxChannels,
-      bufferSize: props.bufferSize,
-      compressionThreshold: 50000,
-      maxMemoryUsage: 1024 // 1GB
-    }
-    
-    dataBufferManager = new DataBufferManager(bufferConfig)
-    
-    // 设置初始视口
-    updateViewport()
-    
-    // 开始数据生成和渲染
-    startDataGeneration()
-    startRendering()
-    
-    ElMessage.success('高性能StripChart初始化成功')
-  } catch (error) {
-    console.error('初始化失败:', error)
-    ElMessage.error('初始化失败，请检查WebGL支持')
-    
-    // 降级到Canvas模式
-    renderMode.value = 'canvas'
+  ctx = chartCanvas.value.getContext('2d')
+  if (!ctx) {
+    ElMessage.error('无法获取Canvas 2D上下文')
+    return
   }
+
+  // 初始化数据存储
+  channels.value.forEach(channel => {
+    channelData.value.set(channel.id, [])
+  })
+
+  updateCanvasSize()
+  startDataGeneration()
+  startRendering()
+  
+  ElMessage.success('StripChart初始化成功')
 }
 
-// 更新视口
-const updateViewport = () => {
-  if (!webglRenderer || !chartCanvas.value) return
+// 更新Canvas尺寸
+const updateCanvasSize = () => {
+  if (!chartCanvas.value || !ctx) return
 
   const canvas = chartCanvas.value
   const rect = canvas.getBoundingClientRect()
   
-  // 设置canvas尺寸
-  canvas.width = rect.width * window.devicePixelRatio
-  canvas.height = rect.height * window.devicePixelRatio
+  canvas.width = rect.width
+  canvas.height = rect.height
   canvas.style.width = rect.width + 'px'
   canvas.style.height = rect.height + 'px'
-
-  const now = Date.now()
-  const windowMs = getTimeWindowMs(timeWindow.value)
-  
-  const viewport: Viewport = {
-    x: 0,
-    y: 0,
-    width: canvas.width,
-    height: canvas.height,
-    timeRange: [now - windowMs, now],
-    valueRange: [-10, 10] // 自动调整
-  }
-  
-  webglRenderer.setViewport(viewport)
 }
 
 // 开始数据生成
@@ -460,131 +360,209 @@ const startDataGeneration = () => {
   if (dataTimer) return
   
   dataTimer = setInterval(() => {
-    if (!isRealtime.value || !dataBufferManager) return
+    if (!isRealtime.value) return
     
-    generateHighSpeedData()
-  }, 1) // 1ms间隔，模拟高速数据
+    generateTestData()
+  }, 16) // ~60fps 数据更新
 }
 
-// 生成高速数据
-const generateHighSpeedData = () => {
-  if (!dataBufferManager) return
-
+// 生成测试数据
+const generateTestData = () => {
   const now = Date.now()
-  const pointsPerBatch = 1000 // 每批1000个点
+  const windowMs = getTimeWindowMs(timeWindow.value)
   
-  channels.value.forEach((channel, channelIndex) => {
+  channels.value.forEach((channel, index) => {
     if (!channel.visible) return
     
-    const data: DataPoint[] = []
+    const data = channelData.value.get(channel.id) || []
     
-    for (let i = 0; i < pointsPerBatch; i++) {
-      const t = now + i * 0.001 // 1μs间隔
-      let value = 0
-      
-      // 生成不同类型的测试信号
-      switch (channelIndex) {
-        case 0: // 高频正弦波
-          value = Math.sin(2 * Math.PI * 10000 * t / 1000) * 5
-          break
-        case 1: // 调制信号
-          value = Math.sin(2 * Math.PI * 1000 * t / 1000) * Math.sin(2 * Math.PI * 100 * t / 1000) * 3
-          break
-        case 2: // 脉冲信号
-          value = Math.sin(2 * Math.PI * 500 * t / 1000) > 0.8 ? 8 : -2
-          break
-        case 3: // 噪声信号
-          value = (Math.random() - 0.5) * 4
-          break
-        default:
-          value = Math.sin(2 * Math.PI * (100 + channelIndex * 50) * t / 1000) * (2 + channelIndex)
-      }
-      
-      // 添加噪声
-      value += (Math.random() - 0.5) * 0.1
-      
-      data.push({
-        timestamp: t,
-        value,
-        quality: 1
-      })
-      
-      // 更新统计
-      channel.currentValue = value
-      channel.maxValue = Math.max(channel.maxValue, value)
-      channel.minValue = Math.min(channel.minValue, value)
+    // 生成新的数据点
+    let value = 0
+    switch (index) {
+      case 0:
+        value = Math.sin(now * 0.005) * 5 + Math.random() * 0.5
+        break
+      case 1:
+        value = Math.cos(now * 0.003) * 3 + Math.sin(now * 0.01) * 2
+        break
+      default:
+        value = Math.sin(now * 0.002 * (index + 1)) * (3 + index)
     }
     
-    dataBufferManager?.addData(channel.id, data)
+    // 添加新数据点
+    data.push({ x: now, y: value })
+    
+    // 移除过期数据点
+    const cutoffTime = now - windowMs
+    while (data.length > 0 && data[0].x < cutoffTime) {
+      data.shift()
+    }
+    
+    // 限制数据点数量
+    if (data.length > 1000) {
+      data.splice(0, data.length - 1000)
+    }
+    
+    // 更新统计
+    channel.currentValue = value
+    channel.maxValue = Math.max(channel.maxValue, value)
+    channel.minValue = Math.min(channel.minValue, value)
+    
+    channelData.value.set(channel.id, data)
   })
   
-  // 更新性能指标
-  updatePerformanceMetrics()
+  // 更新总数据点数和数据率
+  let total = 0
+  channelData.value.forEach(data => total += data.length)
+  totalDataPoints.value = total
+  
+  // 更新数据率统计 (每秒数据点数)
+  updateDataRate()
+  
+  // 发送性能更新事件
+  emit('performanceUpdate', {
+    renderFps: renderFps.value,
+    dataRate: dataRate.value,
+    totalDataPoints: totalDataPoints.value
+  })
+}
+
+// 数据率统计
+let lastDataTime = 0
+let dataPointCount = 0
+
+const updateDataRate = () => {
+  const now = performance.now()
+  dataPointCount += channels.value.filter(ch => ch.visible).length // 每个可见通道一个数据点
+  
+  if (now - lastDataTime >= 1000) { // 每秒更新一次
+    dataRate.value = Math.round((dataPointCount * 1000) / (now - lastDataTime))
+    dataPointCount = 0
+    lastDataTime = now
+  }
 }
 
 // 开始渲染
 const startRendering = () => {
-  if (renderTimer) return
+  if (animationId) return
   
-  const render = () => {
-    if (webglRenderer && dataBufferManager) {
-      // 准备渲染数据
-      const webglChannels: WebGLChannelData[] = []
-      const now = Date.now()
-      const windowMs = getTimeWindowMs(timeWindow.value)
-      
-      channels.value.forEach(channel => {
-        if (!channel.visible) return
-        
-        const timeRange: TimeRange = {
-          start: now - windowMs,
-          end: now
-        }
-        
-        const data = dataBufferManager!.getData(channel.id, timeRange, 10000)
-        const values = new Float32Array(data.map(d => d.value))
-        
-        webglChannels.push({
-          id: channel.id,
-          name: channel.name,
-          color: channel.color,
-          data: values,
-          visible: channel.visible,
-          lineWidth: channel.lineWidth
-        })
-      })
-      
-      webglRenderer.setChannels(webglChannels)
-      webglRenderer.render()
-      
-      // 更新FPS
-      renderFps.value = webglRenderer.getFPS()
+  const render = (timestamp: number) => {
+    // 计算FPS
+    if (timestamp - frameTime >= 1000) {
+      renderFps.value = Math.round((frameCount * 1000) / (timestamp - frameTime))
+      frameTime = timestamp
+      frameCount = 0
     }
+    frameCount++
     
-    renderTimer = requestAnimationFrame(render)
+    drawChart()
+    animationId = requestAnimationFrame(render)
   }
   
-  render()
+  animationId = requestAnimationFrame(render)
 }
 
-// 更新性能指标
-const updatePerformanceMetrics = () => {
-  if (!dataBufferManager) return
+// 绘制图表
+const drawChart = () => {
+  if (!ctx || !chartCanvas.value) return
   
-  const stats = dataBufferManager.getStatistics()
-  dataRate.value = dataBufferManager.getDataRate()
-  memoryUsage.value = stats.memoryUsage
-  compressionRatio.value = stats.compressionRatio
-  totalDataPoints.value = stats.totalPoints
-  bufferUsage.value = Math.min(100, (stats.totalPoints * 16) / (props.bufferSize * props.maxChannels) * 100)
+  const canvas = chartCanvas.value
+  const width = canvas.width
+  const height = canvas.height
   
-  emit('performanceUpdate', {
-    renderFps: renderFps.value,
-    dataRate: dataRate.value,
-    memoryUsage: memoryUsage.value,
-    compressionRatio: compressionRatio.value,
-    totalDataPoints: totalDataPoints.value
+  // 清除画布
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, width, height)
+  
+  // 绘制网格
+  drawGrid(ctx, width, height)
+  
+  // 绘制波形
+  channels.value.forEach(channel => {
+    if (!channel.visible) return
+    
+    const data = channelData.value.get(channel.id) || []
+    if (data.length < 2) return
+    
+    drawWaveform(ctx!, data, channel, width, height)
   })
+}
+
+// 绘制网格
+const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  ctx.strokeStyle = '#f0f0f0'
+  ctx.lineWidth = 1
+  
+  // 垂直网格线
+  const gridCountX = 10
+  for (let i = 0; i <= gridCountX; i++) {
+    const x = (width / gridCountX) * i
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, height)
+    ctx.stroke()
+  }
+  
+  // 水平网格线
+  const gridCountY = 8
+  for (let i = 0; i <= gridCountY; i++) {
+    const y = (height / gridCountY) * i
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(width, y)
+    ctx.stroke()
+  }
+}
+
+// 绘制波形
+const drawWaveform = (
+  ctx: CanvasRenderingContext2D, 
+  data: Array<{x: number, y: number}>, 
+  channel: ChannelConfig, 
+  width: number, 
+  height: number
+) => {
+  if (data.length < 2) return
+  
+  const now = Date.now()
+  const windowMs = getTimeWindowMs(timeWindow.value)
+  const startTime = now - windowMs
+  
+  // 找到值的范围
+  let minY = Infinity, maxY = -Infinity
+  data.forEach(point => {
+    minY = Math.min(minY, point.y)
+    maxY = Math.max(maxY, point.y)
+  })
+  
+  // 添加一些边距
+  const range = maxY - minY
+  if (range > 0) {
+    minY -= range * 0.1
+    maxY += range * 0.1
+  } else {
+    minY -= 1
+    maxY += 1
+  }
+  
+  ctx.strokeStyle = channel.colorHex
+  ctx.lineWidth = channel.lineWidth
+  ctx.beginPath()
+  
+  let firstPoint = true
+  data.forEach((point, index) => {
+    const x = ((point.x - startTime) / windowMs) * width
+    const y = height - ((point.y - minY) / (maxY - minY)) * height
+    
+    if (firstPoint) {
+      ctx.moveTo(x, y)
+      firstPoint = false
+    } else {
+      ctx.lineTo(x, y)
+    }
+  })
+  
+  ctx.stroke()
 }
 
 // 控制方法
@@ -601,36 +579,30 @@ const toggleRealtime = () => {
 }
 
 const resetView = () => {
-  updateViewport()
+  updateCanvasSize()
 }
 
 const clearData = () => {
-  if (dataBufferManager) {
-    dataBufferManager.clearAllChannels()
-  }
-  
+  channelData.value.clear()
   channels.value.forEach(channel => {
+    channelData.value.set(channel.id, [])
     channel.currentValue = 0
     channel.maxValue = -Infinity
     channel.minValue = Infinity
   })
-  
+  totalDataPoints.value = 0
   ElMessage.success('数据已清除')
 }
 
 const onTimeWindowChange = () => {
-  updateViewport()
-}
-
-const onRenderModeChange = () => {
-  // 重新初始化渲染器
-  if (webglRenderer) {
-    webglRenderer.dispose()
-    webglRenderer = null
-  }
+  // 时间窗口改变时，清理过期数据
+  const now = Date.now()
+  const windowMs = getTimeWindowMs(timeWindow.value)
+  const cutoffTime = now - windowMs
   
-  nextTick(() => {
-    initialize()
+  channelData.value.forEach((data, channelId) => {
+    const filteredData = data.filter(point => point.x >= cutoffTime)
+    channelData.value.set(channelId, filteredData)
   })
 }
 
@@ -640,11 +612,11 @@ const addChannel = () => {
     return
   }
 
+  const colors = ['#FFD700', '#00CED1', '#FF69B4', '#32CD32', '#8B8B8B', '#C71585', '#FF8C00', '#90EE90']
   const newChannel: ChannelConfig = {
     id: Date.now(),
     name: `CH${channels.value.length + 1}`,
-    color: getChannelColor(channels.value.length),
-    colorHex: rgbaToHex(getChannelColor(channels.value.length)),
+    colorHex: colors[channels.value.length % colors.length],
     visible: true,
     lineWidth: 2,
     currentValue: 0,
@@ -653,6 +625,7 @@ const addChannel = () => {
   }
 
   channels.value.push(newChannel)
+  channelData.value.set(newChannel.id, [])
   emit('channelAdd', newChannel)
 }
 
@@ -664,30 +637,16 @@ const removeChannel = (index: number) => {
 
   const channel = channels.value[index]
   channels.value.splice(index, 1)
+  channelData.value.delete(channel.id)
   emit('channelRemove', channel.id)
 }
 
-const getChannelColor = (index: number): [number, number, number, number] => {
-  const colors: [number, number, number, number][] = [
-    [1.0, 0.84, 0.0, 1.0], // 金色
-    [0.0, 0.81, 0.82, 1.0], // 青色
-    [1.0, 0.41, 0.71, 1.0], // 粉色
-    [0.2, 0.8, 0.2, 1.0], // 绿色
-    [0.56, 0.56, 0.56, 1.0], // 灰色
-    [0.78, 0.08, 0.52, 1.0], // 深粉色
-    [1.0, 0.55, 0.0, 1.0], // 橙色
-    [0.2, 0.8, 0.2, 1.0] // 浅绿色
-  ]
-  return colors[index % colors.length]
-}
-
 const updateChannelVisibility = (index: number) => {
-  // 通道可见性更新逻辑
+  // 通道可见性更新
 }
 
 const updateChannelColor = (index: number) => {
-  const channel = channels.value[index]
-  channel.color = hexToRgba(channel.colorHex)
+  // 颜色更新
 }
 
 const showColorPicker = (index: number) => {
@@ -705,23 +664,6 @@ const saveChannelConfig = () => {
   ElMessage.success('通道配置已保存')
 }
 
-const exportData = () => {
-  if (!dataBufferManager) {
-    ElMessage.warning('没有可导出的数据')
-    return
-  }
-  
-  // 导出逻辑
-  ElMessage.success('数据导出功能开发中')
-}
-
-const toggleFullscreen = () => {
-  isFullscreen.value = !isFullscreen.value
-  nextTick(() => {
-    updateViewport()
-  })
-}
-
 // 鼠标事件处理
 const onMouseDown = (event: MouseEvent) => {
   // 鼠标按下事件
@@ -736,25 +678,10 @@ const onMouseUp = (event: MouseEvent) => {
 }
 
 const onWheel = (event: WheelEvent) => {
-  // 滚轮缩放事件
   event.preventDefault()
 }
 
 // 工具函数
-const rgbaToHex = (rgba: [number, number, number, number]): string => {
-  const r = Math.round(rgba[0] * 255).toString(16).padStart(2, '0')
-  const g = Math.round(rgba[1] * 255).toString(16).padStart(2, '0')
-  const b = Math.round(rgba[2] * 255).toString(16).padStart(2, '0')
-  return `#${r}${g}${b}`
-}
-
-const hexToRgba = (hex: string): [number, number, number, number] => {
-  const r = parseInt(hex.slice(1, 3), 16) / 255
-  const g = parseInt(hex.slice(3, 5), 16) / 255
-  const b = parseInt(hex.slice(5, 7), 16) / 255
-  return [r, g, b, 1.0]
-}
-
 const formatValue = (value: number): string => {
   if (Math.abs(value) === Infinity || isNaN(value)) return '---'
   return value.toFixed(3)
@@ -782,10 +709,6 @@ const formatNumber = (num: number): string => {
   return num.toString()
 }
 
-const formatTime = (timestamp: number): string => {
-  return new Date(timestamp).toLocaleTimeString()
-}
-
 const updateTime = () => {
   currentTime.value = new Date().toLocaleTimeString()
 }
@@ -796,35 +719,28 @@ const updateChart = () => {
 
 // 监听容器大小变化
 const resizeObserver = new ResizeObserver(() => {
-  updateViewport()
+  updateCanvasSize()
 })
 
 // 生命周期
 onMounted(() => {
-  initialize()
-  
-  // 启动定时器
-  timeTimer = setInterval(updateTime, 1000)
-  
-  if (chartCanvas.value) {
-    resizeObserver.observe(chartCanvas.value.parentElement!)
-  }
+  nextTick(() => {
+    initialize()
+    
+    // 启动定时器
+    timeTimer = setInterval(updateTime, 1000)
+    
+    if (chartCanvas.value?.parentElement) {
+      resizeObserver.observe(chartCanvas.value.parentElement)
+    }
+  })
 })
 
 onUnmounted(() => {
   // 清理定时器
   if (dataTimer) clearInterval(dataTimer)
   if (timeTimer) clearInterval(timeTimer)
-  if (renderTimer) cancelAnimationFrame(renderTimer)
-  
-  // 清理资源
-  if (webglRenderer) {
-    webglRenderer.dispose()
-  }
-  
-  if (dataBufferManager) {
-    dataBufferManager.dispose()
-  }
+  if (animationId) cancelAnimationFrame(animationId)
   
   resizeObserver.disconnect()
 })
@@ -835,13 +751,10 @@ defineExpose({
   removeChannel,
   clearData,
   toggleRealtime,
-  exportData,
   getChannels: () => channels.value,
   getPerformanceMetrics: () => ({
     renderFps: renderFps.value,
     dataRate: dataRate.value,
-    memoryUsage: memoryUsage.value,
-    compressionRatio: compressionRatio.value,
     totalDataPoints: totalDataPoints.value
   })
 })
