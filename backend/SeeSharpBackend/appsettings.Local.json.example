@@ -1,0 +1,20 @@
+{
+  "VolcesDeepseek": {
+    "ApiKey": "YOUR_VOLCES_DEEPSEEK_API_KEY_HERE",
+    "Url": "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+    "Model": "deepseek-r1-250528",
+    "MaxTokens": 16191
+  },
+  "AIServices": {
+    "DeepSeek": {
+      "ApiKey": "YOUR_DEEPSEEK_API_KEY_HERE",
+      "ApiUrl": "https://api.deepseek.com/v1/chat/completions",
+      "Model": "deepseek-coder"
+    },
+    "Claude": {
+      "ApiKey": "YOUR_CLAUDE_API_KEY_HERE",
+      "ApiUrl": "https://api.anthropic.com/v1/messages",
+      "Model": "claude-3-sonnet-20240229"
+    }
+  }
+}
