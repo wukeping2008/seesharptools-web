@@ -317,7 +317,7 @@ namespace SeeSharpBackend.Controllers
                     Success = true,
                     ProcessingTime = stopwatch.ElapsedMilliseconds,
                     ParsedRequirement = requirement,
-                    AccuracyScore = (int)Math.Round(CalculateParsingAccuracy(requirement, session.TestRequest)),
+                    AccuracyScore = (int)CalculateParsingAccuracy(requirement, session.TestRequest),
                     ExtractedParameters = new Dictionary<string, object>
                     {
                         ["测试类型"] = requirement.TestType,
@@ -520,7 +520,6 @@ namespace SeeSharpBackend.Controllers
         private double CalculateParsingAccuracy(TestRequirement parsed, ComprehensiveTestRequest request)
         {
             var accuracy = 0.0;
-            var totalChecks = 5.0;
 
             // 检查测试类型匹配
             if (!string.IsNullOrEmpty(parsed.TestType) && 

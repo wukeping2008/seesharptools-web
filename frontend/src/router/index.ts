@@ -238,6 +238,11 @@ const routes: Array<RouteRecordRaw> = [
       name: 'TestHistory',
       component: () => import('@/views/TestHistoryView.vue')
     },
+    {
+      path: '/random-number',
+      name: 'RandomNumber',
+      component: () => import('@/views/RandomNumberView.vue')
+    },
 ]
 
 const router = createRouter({

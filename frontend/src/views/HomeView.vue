@@ -419,6 +419,14 @@ const backendCategories = reactive([
     icon: 'Setting',
     path: '/project-developer',
     status: '已实现'
+  },
+  {
+    id: 8,
+    title: '随机数生成器',
+    description: '演示前后端集成的随机数生成应用',
+    icon: 'DataAnalysis',
+    path: '/random-number',
+    status: '已实现'
   }
 ])
 

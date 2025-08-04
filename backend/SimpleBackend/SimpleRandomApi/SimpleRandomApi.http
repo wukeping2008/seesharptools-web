@@ -1,0 +1,6 @@
+@SimpleRandomApi_HostAddress = http://localhost:5064
+
+GET {{SimpleRandomApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
