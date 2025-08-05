@@ -317,7 +317,7 @@ namespace SeeSharpBackend.Controllers
                     Success = true,
                     ProcessingTime = stopwatch.ElapsedMilliseconds,
                     ParsedRequirement = requirement,
-                    AccuracyScore = (int)CalculateParsingAccuracy(requirement, session.TestRequest),
+                    AccuracyScore = (int)Math.Round(CalculateParsingAccuracy(requirement, session.TestRequest)),
                     ExtractedParameters = new Dictionary<string, object>
                     {
                         ["测试类型"] = requirement.TestType,
