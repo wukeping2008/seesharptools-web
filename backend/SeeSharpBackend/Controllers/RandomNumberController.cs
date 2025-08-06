@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace SeeSharpBackend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/Random")]
 public class RandomNumberController : ControllerBase
 {
     private readonly ILogger<RandomNumberController> _logger;
@@ -21,7 +21,7 @@ public class RandomNumberController : ControllerBase
     /// <param name="min">最小值（默认1）</param>
     /// <param name="max">最大值（默认100）</param>
     /// <returns>随机数结果</returns>
-    [HttpGet("generate")]
+    [HttpGet("single")]
     public ActionResult<RandomNumberResponse> GenerateRandomNumber([FromQuery] int min = 1, [FromQuery] int max = 100)
     {
         try
@@ -60,7 +60,7 @@ public class RandomNumberController : ControllerBase
     /// <param name="min">最小值（默认1）</param>
     /// <param name="max">最大值（默认100）</param>
     /// <returns>随机数数组</returns>
-    [HttpGet("generate-batch")]
+    [HttpGet("batch")]
     public ActionResult<BatchRandomNumberResponse> GenerateBatchRandomNumbers(
         [FromQuery] int count = 5,
         [FromQuery] int min = 1, 

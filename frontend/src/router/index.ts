@@ -18,6 +18,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'AITestPlatform',
     component: () => import('../views/AITestPlatform.vue')
   },
+  // USB-1601 演示页面
+  {
+    path: '/usb1601-demo',
+    name: 'USB1601Demo',
+    component: () => import('../views/USB1601DemoView.vue')
+  },
   {
     path: '/comprehensive-test',
     name: 'ComprehensiveTest',
@@ -168,81 +174,71 @@ const routes: Array<RouteRecordRaw> = [
     name: 'DualAxisEasyChartTest',
     component: () => import('@/views/DualAxisEasyChartTest.vue')
   },
-    {
-      path: '/temperature-acquisition-card-test',
-      name: 'TemperatureAcquisitionCardTest',
-      component: () => import('@/views/TemperatureAcquisitionCardTest.vue')
-    },
-    {
-      path: '/signal-generator-test',
-      name: 'SignalGeneratorTest',
-      component: () => import('@/views/SignalGeneratorTest.vue')
-    },
-    {
-      path: '/digital-multimeter-test',
-      name: 'DigitalMultimeterTest',
-      component: () => import('@/views/DigitalMultimeterTest.vue')
-    },
-    {
-      path: '/oscilloscope-test',
-      name: 'OscilloscopeTest',
-      component: () => import('@/views/OscilloscopeTest.vue')
-    },
-    {
-      path: '/dio-card-test',
-      name: 'DIOCardTest',
-      component: () => import('@/views/DIOCardTest.vue')
-    },
-    {
-      path: '/backend-integration-test',
-      name: 'BackendIntegrationTest',
-      component: () => import('@/views/BackendIntegrationTest.vue')
-    },
-    {
-      path: '/hardware-driver-test',
-      name: 'HardwareDriverTest',
-      component: () => import('@/views/HardwareDriverTest.vue')
-    },
-    {
-      path: '/ai-control-generator',
-      name: 'AIControlGenerator',
-      component: () => import('@/views/AIControlGeneratorTest.vue')
-    },
-    {
-      path: '/performance-monitoring',
-      name: 'PerformanceMonitoring',
-      component: () => import('@/views/PerformanceMonitoringView.vue')
-    },
-    {
-      path: '/data-analysis-test',
-      name: 'DataAnalysisTest',
-      component: () => import('@/views/DataAnalysisTest.vue')
-    },
-    {
-      path: '/project-developer',
-      name: 'ProjectDeveloper',
-      component: () => import('@/views/ProjectDeveloperView.vue')
-    },
-    {
-      path: '/csharp-runner-test',
-      name: 'CSharpRunnerTest',
-      component: () => import('@/views/CSharpRunnerTest.vue')
-    },
-    {
-      path: '/api-key-management',
-      name: 'ApiKeyManagement',
-      component: () => import('@/views/ApiKeyManagement.vue')
-    },
-    {
-      path: '/test-history',
-      name: 'TestHistory',
-      component: () => import('@/views/TestHistoryView.vue')
-    },
-    {
-      path: '/random-number',
-      name: 'RandomNumber',
-      component: () => import('@/views/RandomNumberView.vue')
-    },
+  {
+    path: '/temperature-acquisition-card-test',
+    name: 'TemperatureAcquisitionCardTest',
+    component: () => import('@/views/TemperatureAcquisitionCardTest.vue')
+  },
+  {
+    path: '/signal-generator-test',
+    name: 'SignalGeneratorTest',
+    component: () => import('@/views/SignalGeneratorTest.vue')
+  },
+  {
+    path: '/digital-multimeter-test',
+    name: 'DigitalMultimeterTest',
+    component: () => import('@/views/DigitalMultimeterTest.vue')
+  },
+  {
+    path: '/oscilloscope-test',
+    name: 'OscilloscopeTest',
+    component: () => import('@/views/OscilloscopeTest.vue')
+  },
+  {
+    path: '/dio-card-test',
+    name: 'DIOCardTest',
+    component: () => import('@/views/DIOCardTest.vue')
+  },
+  {
+    path: '/hardware-driver-test',
+    name: 'HardwareDriverTest',
+    component: () => import('@/views/HardwareDriverTest.vue')
+  },
+  {
+    path: '/performance-monitoring',
+    name: 'PerformanceMonitoring',
+    component: () => import('@/views/PerformanceMonitoringView.vue')
+  },
+  {
+    path: '/data-analysis-test',
+    name: 'DataAnalysisTest',
+    component: () => import('@/views/DataAnalysisTest.vue')
+  },
+  {
+    path: '/project-developer',
+    name: 'ProjectDeveloper',
+    component: () => import('@/views/ProjectDeveloperView.vue')
+  },
+  {
+    path: '/csharp-runner-test',
+    name: 'CSharpRunnerTest',
+    component: () => import('@/views/CSharpRunnerTest.vue')
+  },
+  {
+    path: '/api-key-management',
+    name: 'ApiKeyManagement',
+    component: () => import('@/views/ApiKeyManagement.vue')
+  },
+  {
+    path: '/test-history',
+    name: 'TestHistory',
+    component: () => import('@/views/TestHistoryView.vue')
+  },
+  {
+    path: '/random-number',
+    name: 'RandomNumber',
+    component: () => import('@/views/RandomNumberView.vue')
+  },
 ]
 
 const router = createRouter({

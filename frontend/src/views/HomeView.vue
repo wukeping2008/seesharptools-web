@@ -127,6 +127,155 @@
       </div>
     </section>
 
+    <!-- USB-1601 数据采集演示区域 -->
+    <section class="usb1601-featured-section">
+      <div class="featured-content">
+        <div class="featured-header">
+          <div class="featured-badge">
+            <el-icon class="badge-icon"><Cpu /></el-icon>
+            <span class="badge-text">最新功能</span>
+          </div>
+          <h2 class="featured-title">
+            🚀 简仪科技 USB-1601 数据采集演示
+          </h2>
+          <p class="featured-subtitle">
+            专业级USB数据采集卡Web演示平台 - 支持AI/AO/DI/DO多功能测量与控制
+          </p>
+        </div>
+        
+        <div class="featured-body">
+          <div class="featured-left">
+            <div class="feature-highlights">
+              <div class="highlight-item">
+                <div class="highlight-icon">
+                  <el-icon><DataAnalysis /></el-icon>
+                </div>
+                <div class="highlight-content">
+                  <h4>16路AI模拟输入</h4>
+                  <p>16位分辨率，1MS/s采样率，实时波形显示</p>
+                </div>
+              </div>
+              
+              <div class="highlight-item">
+                <div class="highlight-icon">
+                  <el-icon><Connection /></el-icon>
+                </div>
+                <div class="highlight-content">
+                  <h4>2路AO模拟输出</h4>
+                  <p>16位分辨率，任意波形生成，实时控制</p>
+                </div>
+              </div>
+              
+              <div class="highlight-item">
+                <div class="highlight-icon">
+                  <el-icon><SwitchButton /></el-icon>
+                </div>
+                <div class="highlight-content">
+                  <h4>8路数字IO</h4>
+                  <p>TTL/CMOS兼容，高速数字信号处理</p>
+                </div>
+              </div>
+              
+              <div class="highlight-item">
+                <div class="highlight-icon">
+                  <el-icon><Code /></el-icon>
+                </div>
+                <div class="highlight-content">
+                  <h4>C# Runner集成</h4>
+                  <p>在线C#代码执行，模拟硬件操作</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="featured-stats">
+              <div class="stat-item">
+                <div class="stat-value">1MS/s</div>
+                <div class="stat-label">采样率</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">16位</div>
+                <div class="stat-label">分辨率</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">硬件+模拟</div>
+                <div class="stat-label">双模式</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">实时</div>
+                <div class="stat-label">数据流</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="featured-right">
+            <div class="demo-preview">
+              <div class="preview-header">
+                <div class="preview-tabs">
+                  <div class="tab active">AI输入</div>
+                  <div class="tab">AO输出</div>
+                  <div class="tab">数字IO</div>
+                </div>
+                <div class="preview-status">
+                  <div class="status-dot active"></div>
+                  <span>模拟模式</span>
+                </div>
+              </div>
+              
+              <div class="preview-content">
+                <!-- 模拟波形显示 -->
+                <div class="waveform-preview">
+                  <svg width="280" height="160" viewBox="0 0 280 160">
+                    <defs>
+                      <linearGradient id="previewGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.8" />
+                        <stop offset="100%" style="stop-color:#667eea;stop-opacity:0.1" />
+                      </linearGradient>
+                    </defs>
+                    <!-- 网格 -->
+                    <g stroke="#e0e4e7" stroke-width="0.5" opacity="0.7">
+                      <line v-for="i in 9" :key="`h${i}`" :x1="20" :y1="20 + i * 15" :x2="260" :y2="20 + i * 15" />
+                      <line v-for="i in 13" :key="`v${i}`" :x1="20 + i * 20" :y1="20" :x2="20 + i * 20" :y2="140" />
+                    </g>
+                    <!-- 通道1 -->
+                    <path d="M20,80 Q60,50 100,80 T180,80 T260,80" fill="none" stroke="#667eea" stroke-width="2"/>
+                    <!-- 通道2 -->
+                    <path d="M20,100 Q60,120 100,100 T180,100 T260,100" fill="none" stroke="#764ba2" stroke-width="2"/>
+                  </svg>
+                </div>
+                
+                <!-- 数字显示 -->
+                <div class="digital-readouts">
+                  <div class="readout">
+                    <span class="readout-label">AI0</span>
+                    <span class="readout-value">{{ (Math.sin(Date.now() / 1000) * 5).toFixed(2) }}V</span>
+                  </div>
+                  <div class="readout">
+                    <span class="readout-label">AI1</span>
+                    <span class="readout-value">{{ (Math.cos(Date.now() / 1000) * 3).toFixed(2) }}V</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="featured-actions">
+          <el-button type="primary" size="large" @click="router.push('/usb1601-demo')">
+            <el-icon><VideoPlay /></el-icon>
+            立即体验演示
+          </el-button>
+          <el-button size="large" @click="scrollToModules">
+            <el-icon><DataBoard /></el-icon>
+            查看技术规格
+          </el-button>
+          <el-button size="large" @click="openUSB1601Docs">
+            <el-icon><Document /></el-icon>
+            产品文档
+          </el-button>
+        </div>
+      </div>
+    </section>
+
     <!-- 主要模块 -->
     <section class="modules-section" ref="modulesSection">
       <div class="section-header">
@@ -254,7 +403,8 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   DataAnalysis, TrendCharts, Setting, Monitor, Link,
-  Warning, Grid, Cpu, DataLine, Timer, ArrowDown, Right, Document
+  Warning, Grid, Cpu, DataLine, Timer, ArrowDown, Right, Document,
+  Connection, SwitchButton, VideoPlay, DataBoard
 } from '@element-plus/icons-vue'
 
 // 路由
@@ -599,6 +749,10 @@ const openGitHub = () => {
 
 const openDocs = () => {
   window.open('/docs', '_blank')
+}
+
+const openUSB1601Docs = () => {
+  window.open('/documentation/usb1601', '_blank')
 }
 
 const scrollToModules = () => {
@@ -1106,6 +1260,311 @@ onUnmounted(() => {
       color: var(--text-secondary);
     }
   }
+}
+
+// USB-1601 演示区域样式
+.usb1601-featured-section {
+  background: linear-gradient(135deg, 
+    rgba(102, 126, 234, 0.1) 0%, 
+    rgba(118, 75, 162, 0.1) 50%,
+    rgba(102, 126, 234, 0.1) 100%
+  );
+  padding: 80px 0;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%23667eea" stroke-width="0.5" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    pointer-events: none;
+  }
+}
+
+.featured-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.featured-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.featured-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  
+  .badge-icon {
+    font-size: 16px;
+  }
+}
+
+.featured-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
+  
+  @media (max-width: 768px) {
+    font-size: 28px;
+  }
+}
+
+.featured-subtitle {
+  font-size: 18px;
+  color: #666;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+  
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
+}
+
+.featured-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  margin-bottom: 60px;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+.featured-left {
+  .feature-highlights {
+    margin-bottom: 40px;
+  }
+  
+  .highlight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    transition: all 0.3s ease;
+    
+    &:hover {
+      transform: translateX(8px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      border-color: rgba(102, 126, 234, 0.3);
+    }
+  }
+  
+  .highlight-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 12px;
+    color: white;
+    
+    .el-icon {
+      font-size: 24px;
+    }
+  }
+  
+  .highlight-content {
+    h4 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+  }
+}
+
+.featured-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stat-item {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(102, 126, 234, 0.1);
+    
+    .stat-value {
+      display: block;
+      font-size: 20px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      display: block;
+      font-size: 12px;
+      color: #999;
+      font-weight: 500;
+    }
+  }
+}
+
+.featured-right {
+  display: flex;
+  justify-content: center;
+  
+  @media (max-width: 1024px) {
+    order: -1;
+  }
+}
+
+.demo-preview {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  width: 100%;
+  max-width: 400px;
+}
+
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  
+  .preview-tabs {
+    display: flex;
+    gap: 4px;
+    
+    .tab {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #666;
+      background: #f5f5f5;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+    }
+  }
+  
+  .preview-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #666;
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+      
+      &.active {
+        background: #4CAF50;
+        animation: pulse 2s infinite;
+      }
+    }
+  }
+}
+
+.preview-content {
+  .waveform-preview {
+    margin-bottom: 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 12px;
+  }
+  
+  .digital-readouts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    
+    .readout {
+      background: #1a1a1a;
+      color: #00ff00;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      .readout-label {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      
+      .readout-value {
+        font-size: 16px;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.featured-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  
+  @media (max-width: 768px) {
+    .el-button {
+      flex: 1;
+      min-width: 160px;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 // 主要模块样式

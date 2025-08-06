@@ -88,7 +88,7 @@ builder.Services.AddCors(options =>
     
     options.AddPolicy("Development", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:5176", "http://localhost:5177", "http://localhost:8080")
+        policy.WithOrigins("http://localhost:3000", "http://localhost:5173", "http://localhost:5176", "http://localhost:5177", "http://localhost:5178", "http://localhost:5179", "http://localhost:5180", "http://localhost:8080")
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -125,8 +125,9 @@ builder.Services.AddSingleton<IDataCompressionService, DataCompressionService>()
 // 注册连接管理服务
 builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 
-// 注册数据采集引擎
-builder.Services.AddScoped<SeeSharpBackend.Services.DataAcquisition.IDataAcquisitionEngine, SeeSharpBackend.Services.DataAcquisition.DataAcquisitionEngine>();
+// 注册数据采集引擎 - 使用USB-1601专用实现
+builder.Services.AddScoped<SeeSharpBackend.Services.DataAcquisition.IDataAcquisitionEngine, SeeSharpBackend.Services.DataAcquisition.USB1601DataAcquisitionEngine>();
+builder.Services.AddScoped<SeeSharpBackend.Services.DataAcquisition.USB1601DataAcquisitionEngine>();
 
 // 注册数据存储服务
 builder.Services.Configure<DataStorageOptions>(builder.Configuration.GetSection("DataStorage"));

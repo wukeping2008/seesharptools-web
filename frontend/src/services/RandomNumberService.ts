@@ -1,7 +1,6 @@
 import { backendApi } from './BackendApiService'
 
 export interface RandomNumberResponse {
-  success: boolean
   value: number
   min: number
   max: number
@@ -10,18 +9,13 @@ export interface RandomNumberResponse {
 }
 
 export interface BatchRandomNumberResponse {
-  success: boolean
   values: number[]
   count: number
   min: number
   max: number
   generatedAt: string
+  average: number
   message: string
-  statistics: {
-    average: number
-    minimum: number
-    maximum: number
-  }
 }
 
 export class RandomNumberService {

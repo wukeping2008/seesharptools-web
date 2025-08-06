@@ -366,7 +366,7 @@ namespace SeeSharpBackend.Controllers
                     Success = codeResult.Success,
                     ProcessingTime = stopwatch.ElapsedMilliseconds,
                     GeneratedCode = codeResult.GeneratedCode,
-                    QualityScore = codeResult.QualityScore,
+                    QualityScore = (int)Math.Round(codeResult.QualityScore),
                     ComplexityLevel = codeResult.ComplexityLevel,
                     OptimizationSuggestions = codeResult.OptimizationSuggestions,
                     Error = codeResult.ErrorMessage
