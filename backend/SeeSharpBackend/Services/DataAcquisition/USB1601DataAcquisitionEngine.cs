@@ -17,7 +17,9 @@ namespace SeeSharpBackend.Services.DataAcquisition
         private readonly IHubContext<DataStreamHub> _hubContext;
         private readonly JYUSB1601DllDriverAdapter? _driverAdapter;
         private readonly ConcurrentDictionary<int, AcquisitionTask> _tasks;
-        private readonly bool _simulationMode;
+        private bool _simulationMode;
+        private readonly Dictionary<int, object> _aiTasks = new();
+        private readonly Dictionary<int, object> _aoTasks = new();
 
         public USB1601DataAcquisitionEngine(
             ILogger<USB1601DataAcquisitionEngine> logger,
@@ -304,14 +306,59 @@ namespace SeeSharpBackend.Services.DataAcquisition
             var random = new Random();
             var sequenceNumber = 0L;
             var samplesPerPacket = 100; // 每个数据包的样本数
+            object? aiTask = null;
+            object? aoTask = null;
             
             try
             {
-                if (!_simulationMode && _driverAdapter != null)
+                if (!_simulationMode && _driverAdapter != null && _driverAdapter.IsInitialized)
                 {
-                    // 硬件模式：初始化AI任务
-                    var deviceId = task.Configuration.DeviceId.ToString();
-                    _logger.LogInformation($"启动硬件AI任务 {deviceId}");
+                    // 硬件模式：创建AI和AO任务
+                    var deviceIndex = task.Configuration.DeviceId - 1; // 转换为设备索引
+                    
+                    // 创建AI任务
+                    var aiParams = new Dictionary<string, object>
+                    {
+                        ["DeviceIndex"] = deviceIndex,
+                        ["TaskId"] = task.TaskId,
+                        ["ChannelCount"] = task.Configuration.Channels.Count(c => c.Enabled),
+                        ["SampleRate"] = task.Configuration.SampleRate,
+                        ["MinRange"] = task.Configuration.Channels.FirstOrDefault()?.RangeMin ?? -10.0,
+                        ["MaxRange"] = task.Configuration.Channels.FirstOrDefault()?.RangeMax ?? 10.0
+                    };
+                    
+                    aiTask = await _driverAdapter.CreateTaskAsync("AI", task.Configuration.DeviceId, aiParams);
+                    if (aiTask != null)
+                    {
+                        _aiTasks[task.TaskId] = aiTask;
+                        await _driverAdapter.StartTaskAsync(task.TaskId);
+                        _logger.LogInformation($"启动硬件AI任务 设备{deviceIndex}, 采样率{task.Configuration.SampleRate}Hz");
+                    }
+                    
+                    // 如果需要自发自收，创建AO任务
+                    if (task.Configuration.SelfTestMode)
+                    {
+                        var aoParams = new Dictionary<string, object>
+                        {
+                            ["DeviceIndex"] = deviceIndex,
+                            ["TaskId"] = -task.TaskId, // 使用负数ID区分AO任务
+                            ["ChannelCount"] = Math.Min(2, task.Configuration.Channels.Count(c => c.Enabled)),
+                            ["MinRange"] = -10.0,
+                            ["MaxRange"] = 10.0
+                        };
+                        
+                        aoTask = await _driverAdapter.CreateTaskAsync("AO", task.Configuration.DeviceId, aoParams);
+                        if (aoTask != null)
+                        {
+                            _aoTasks[task.TaskId] = aoTask;
+                            
+                            // 生成测试波形数据
+                            var waveformData = GenerateTestWaveform(task.Configuration);
+                            await _driverAdapter.WriteDataAsync(-task.TaskId, waveformData);
+                            await _driverAdapter.StartTaskAsync(-task.TaskId);
+                            _logger.LogInformation($"启动硬件AO任务用于自发自收测试");
+                        }
+                    }
                 }
 
                 while (!task.CancellationTokenSource.Token.IsCancellationRequested)
@@ -343,29 +390,37 @@ namespace SeeSharpBackend.Services.DataAcquisition
                             channelData[channel.ChannelId] = data;
                         }
                     }
-                    else if (_driverAdapter != null)
+                    else if (_driverAdapter != null && aiTask != null)
                     {
-                        // 硬件模式：模拟硬件数据读取
-                        var deviceId = task.Configuration.DeviceId.ToString();
-                        _logger.LogDebug($"从硬件读取数据 {deviceId}");
-                        double[,]? hardwareData = null; // 模拟硬件数据
+                        // 硬件模式：从真实硬件读取数据
+                        var totalSamples = samplesPerPacket * task.Configuration.Channels.Count(c => c.Enabled);
+                        var hardwareData = await _driverAdapter.ReadDataAsync(task.TaskId, totalSamples);
                         
-                        if (hardwareData != null)
+                        if (hardwareData != null && hardwareData.Length > 0)
                         {
+                            // 将一维数组转换为多通道数据
+                            int channelCount = task.Configuration.Channels.Count(c => c.Enabled);
                             int channelIndex = 0;
+                            
                             foreach (var channel in task.Configuration.Channels.Where(c => c.Enabled))
                             {
-                                if (channelIndex < hardwareData.GetLength(0))
+                                var data = new double[samplesPerPacket];
+                                for (int i = 0; i < samplesPerPacket; i++)
                                 {
-                                    var data = new double[samplesPerPacket];
-                                    for (int i = 0; i < samplesPerPacket; i++)
-                                    {
-                                        data[i] = hardwareData[channelIndex, i];
-                                    }
-                                    channelData[channel.ChannelId] = data;
-                                    channelIndex++;
+                                    // 交错数据：ch0[0], ch1[0], ch0[1], ch1[1], ...
+                                    data[i] = hardwareData[i * channelCount + channelIndex];
                                 }
+                                channelData[channel.ChannelId] = data;
+                                channelIndex++;
                             }
+                            
+                            _logger.LogDebug($"从硬件读取 {totalSamples} 个样本");
+                        }
+                        else
+                        {
+                            // 如果没有数据可用，跳过本次循环
+                            await Task.Delay(10);
+                            continue;
                         }
                     }
 
@@ -421,12 +476,82 @@ namespace SeeSharpBackend.Services.DataAcquisition
                 if (!_simulationMode && _driverAdapter != null)
                 {
                     // 清理硬件资源
-                    var deviceId = task.Configuration.DeviceId.ToString();
-                    _logger.LogInformation($"清理硬件资源 {deviceId}");
+                    try
+                    {
+                        if (_aiTasks.ContainsKey(task.TaskId))
+                        {
+                            await _driverAdapter.StopTaskAsync(task.TaskId);
+                            await _driverAdapter.DisposeTaskAsync(task.TaskId);
+                            _aiTasks.Remove(task.TaskId);
+                            _logger.LogInformation($"清理AI硬件资源 任务{task.TaskId}");
+                        }
+                        
+                        if (_aoTasks.ContainsKey(task.TaskId))
+                        {
+                            await _driverAdapter.StopTaskAsync(-task.TaskId);
+                            await _driverAdapter.DisposeTaskAsync(-task.TaskId);
+                            _aoTasks.Remove(task.TaskId);
+                            _logger.LogInformation($"清理AO硬件资源 任务{task.TaskId}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "清理硬件资源时发生错误");
+                    }
                 }
             }
         }
 
+        /// <summary>
+        /// 生成测试波形数据
+        /// </summary>
+        private double[] GenerateTestWaveform(AcquisitionConfiguration config)
+        {
+            var sampleRate = config.SampleRate;
+            var duration = 1.0; // 1秒的数据
+            var samples = (int)(sampleRate * duration);
+            var data = new double[samples * 2]; // 2个AO通道
+            
+            // 生成不同频率的正弦波
+            for (int i = 0; i < samples; i++)
+            {
+                var t = i / sampleRate;
+                // 通道0: 10Hz正弦波
+                data[i * 2] = 5.0 * Math.Sin(2 * Math.PI * 10 * t);
+                // 通道1: 20Hz正弦波
+                data[i * 2 + 1] = 3.0 * Math.Sin(2 * Math.PI * 20 * t);
+            }
+            
+            return data;
+        }
+        
+        /// <summary>
+        /// 切换硬件/模拟模式
+        /// </summary>
+        public async Task<bool> SetModeAsync(bool useHardware)
+        {
+            if (useHardware && _driverAdapter != null && _driverAdapter.IsInitialized)
+            {
+                _simulationMode = false;
+                _logger.LogInformation("切换到硬件模式");
+                return true;
+            }
+            else
+            {
+                _simulationMode = true;
+                _logger.LogInformation("切换到模拟模式");
+                return true;
+            }
+        }
+        
+        /// <summary>
+        /// 获取当前模式
+        /// </summary>
+        public string GetCurrentMode()
+        {
+            return _simulationMode ? "Simulation" : "Hardware";
+        }
+        
         /// <summary>
         /// 内部任务类
         /// </summary>

@@ -100,6 +100,17 @@
     <div class="demo-section" ref="demoSectionRef">
       <div class="container">
         <h2 class="section-title">实时演示</h2>
+        <!-- 演示说明 -->
+        <div class="demo-description">
+          <el-alert
+            title="USB-1601 数据采集演示"
+            description="本演示展示了简仪科技USB-1601数据采集卡的完整功能，支持AI模拟输入、AO模拟输出、数字IO控制和C# Runner代码执行。"
+            type="success"
+            :closable="false"
+            show-icon
+            style="margin-bottom: 24px"
+          />
+        </div>
         <div class="demo-container">
           <USB1601Demo />
         </div>
@@ -463,6 +474,13 @@ onMounted(() => {
 .demo-section {
   padding: 80px 0;
   background: rgba(255, 255, 255, 0.9);
+}
+
+.demo-mode-selector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .demo-container {

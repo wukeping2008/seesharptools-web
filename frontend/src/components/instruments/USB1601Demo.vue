@@ -1,896 +1,752 @@
 <template>
-  <div class="usb1601-demo professional-control">
+  <div class="usb1601-simulator-demo professional-control">
     <!-- 控件标题 -->
-    <div class="demo-header">
+    <div class="control-header">
       <div class="header-left">
-        <h3 class="demo-title">
-          <el-icon class="title-icon"><DataAnalysis /></el-icon>
-          简仪科技 USB-1601 数据采集演示
-        </h3>
-        <div class="demo-status">
-          <span class="status-indicator" :class="systemStatus.toLowerCase()">
-            {{ systemStatus }}
-          </span>
-          <span class="device-info" v-if="deviceConnected">设备ID: {{ deviceId }}</span>
-          <span class="mode-info">{{ simulationMode ? '模拟模式' : '硬件模式' }}</span>
+        <div class="title-section">
+          <h2 class="control-title">
+            <el-icon class="title-icon"><Cpu /></el-icon>
+            USB-1601 高精度数据采集卡
+          </h2>
+          <p class="control-subtitle">16通道AI/2通道AO/8路DIO - 支持真实硬件与模拟模式</p>
         </div>
       </div>
       <div class="header-right">
-        <el-button-group>
-          <el-button 
-            :type="acquiring ? 'danger' : 'primary'" 
-            @click="toggleAcquisition"
-            size="large"
-            :loading="operationLoading"
-          >
-            <el-icon><VideoPlay v-if="!acquiring" /><VideoPause v-else /></el-icon>
-            {{ acquiring ? '停止采集' : '开始采集' }}
-          </el-button>
-          <el-button @click="connectDevice" :disabled="acquiring" size="large">
-            <el-icon><Connection /></el-icon>
-            {{ deviceConnected ? '重新连接' : '连接设备' }}
-          </el-button>
-          <el-button @click="showSettings = true" size="large">
-            <el-icon><Setting /></el-icon>
-            配置
-          </el-button>
-        </el-button-group>
+        <el-switch
+          v-model="useHardware"
+          active-text="硬件模式"
+          inactive-text="模拟模式"
+          :loading="modeSwitching"
+          @change="switchMode"
+          style="margin-right: 12px"
+        />
+        <el-tag :type="useHardware ? 'danger' : 'success'" effect="dark">
+          {{ useHardware ? '硬件模式' : '模拟模式' }}
+        </el-tag>
+        <el-tag :type="isRunning ? 'warning' : 'info'" effect="plain">
+          {{ isRunning ? '运行中' : '已停止' }}
+        </el-tag>
       </div>
     </div>
 
-    <!-- 主显示区域 -->
-    <div class="demo-body">
-      <el-row :gutter="16">
-        <!-- 左侧：实时数据显示 -->
-        <el-col :span="16">
-          <div class="data-display">
-            <!-- AI模拟输入通道 -->
-            <div class="channel-section">
-              <div class="section-header">
-                <h4><el-icon><DataLine /></el-icon>AI - 模拟输入通道</h4>
-                <el-switch 
-                  v-model="aiEnabled" 
-                  active-text="启用"
-                  :disabled="acquiring"
-                />
-              </div>
-              <div class="data-chart" v-if="aiEnabled">
-                <WaveformChart
-                  ref="aiChartRef"
-                  :data="waveformData"
-                  :channels="aiChannelConfigs"
-                  height="280px"
-                  :show-header="true"
-                  :show-legend="true"
-                />
-              </div>
+    <div class="simulator-layout">
+      <!-- 左侧控制面板 -->
+      <div class="control-panel">
+        <!-- 采集控制区 -->
+        <el-card class="control-section">
+          <template #header>
+            <div class="section-header">
+              <el-icon><Setting /></el-icon>
+              <span>采集控制</span>
             </div>
-
-            <!-- AO模拟输出控制 -->
-            <div class="channel-section">
-              <div class="section-header">
-                <h4><el-icon><Connection /></el-icon>AO - 模拟输出控制</h4>
-                <el-switch 
-                  v-model="aoEnabled" 
-                  active-text="启用"
-                  :disabled="acquiring"
-                />
-              </div>
-              <div class="ao-controls" v-if="aoEnabled">
-                <el-row :gutter="12">
-                  <el-col :span="6" v-for="channel in aoChannels" :key="channel.id">
-                    <div class="ao-channel">
-                      <label>AO{{ channel.id }}</label>
-                      <el-slider
-                        v-model="channel.value"
-                        :min="-10"
-                        :max="10"
-                        :step="0.1"
-                        :format-tooltip="(val: number) => `${val}V`"
-                        @change="setAOValue(channel.id, channel.value)"
-                      />
-                      <div class="ao-value">{{ channel.value.toFixed(1) }}V</div>
-                    </div>
-                  </el-col>
-                </el-row>
-              </div>
-            </div>
-          </div>
-        </el-col>
-
-        <!-- 右侧：控制和状态面板 -->
-        <el-col :span="8">
-          <div class="control-panel">
-            <!-- 数字IO控制 -->
-            <div class="dio-section">
-              <div class="section-header">
-                <h4><el-icon><SwitchButton /></el-icon>数字IO</h4>
-              </div>
-              <div class="dio-controls">
-                <!-- 数字输出 -->
-                <div class="do-group">
-                  <label>数字输出 (DO)</label>
-                  <div class="do-buttons">
-                    <el-button
-                      v-for="pin in 8"
-                      :key="pin"
-                      :type="doStates[pin - 1] ? 'primary' : 'default'"
-                      size="small"
-                      @click="toggleDO(pin - 1)"
-                      :disabled="acquiring"
-                    >
-                      P{{ pin - 1 }}
-                    </el-button>
-                  </div>
-                </div>
-                
-                <!-- 数字输入 -->
-                <div class="di-group">
-                  <label>数字输入 (DI)</label>
-                  <div class="di-indicators">
-                    <div
-                      v-for="pin in 8"
-                      :key="pin"
-                      class="di-led"
-                      :class="{ active: diStates[pin - 1] }"
-                    >
-                      P{{ pin - 1 }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 采集统计信息 -->
-            <div class="stats-section">
-              <div class="section-header">
-                <h4><el-icon><DataBoard /></el-icon>采集统计</h4>
-              </div>
-              <div class="stats-grid">
-                <div class="stat-item">
-                  <span class="stat-label">采集时间</span>
-                  <span class="stat-value">{{ formatDuration(acquisitionDuration) }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">采样率</span>
-                  <span class="stat-value">{{ currentSampleRate.toLocaleString() }} Hz</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">总样本数</span>
-                  <span class="stat-value">{{ totalSamples.toLocaleString() }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">数据质量</span>
-                  <span class="stat-value">{{ (dataQuality * 100).toFixed(1) }}%</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">内存使用</span>
-                  <span class="stat-value">{{ (memoryUsage / 1024 / 1024).toFixed(1) }} MB</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">CPU使用</span>
-                  <span class="stat-value">{{ cpuUsage.toFixed(1) }}%</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- C# Runner演示 -->
-            <div class="csharp-section">
-              <div class="section-header">
-                <h4><el-icon><Document /></el-icon>C# Runner演示</h4>
-              </div>
+          </template>
+          
+          <div class="control-group">
+            <div class="control-row">
               <el-button 
-                type="success" 
-                @click="runCSharpDemo"
-                :loading="csharpRunning"
-                style="width: 100%"
+                type="primary" 
+                :icon="isRunning ? VideoPause : VideoPlay"
+                @click="toggleAcquisition"
+                size="large"
+                class="action-button"
               >
-                <el-icon><Play /></el-icon>
-                运行C#代码演示
+                {{ isRunning ? '停止采集' : '开始采集' }}
               </el-button>
-              <div v-if="csharpOutput" class="csharp-output">
-                <pre>{{ csharpOutput }}</pre>
-              </div>
+              <el-button 
+                :icon="Delete" 
+                @click="clearData"
+                size="large"
+                class="action-button"
+              >
+                清除数据
+              </el-button>
             </div>
-          </div>
-        </el-col>
-      </el-row>
-    </div>
-
-    <!-- 配置对话框 -->
-    <el-dialog 
-      v-model="showSettings" 
-      title="USB-1601 配置" 
-      width="60%"
-    >
-      <el-form :model="settings" label-width="120px">
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="设备ID">
-              <el-input-number v-model="settings.deviceId" :min="0" :max="7" />
-            </el-form-item>
-            <el-form-item label="采样率">
-              <el-select v-model="settings.sampleRate" placeholder="选择采样率">
+            
+            <div class="control-row" v-if="useHardware">
+              <el-checkbox v-model="selfTestMode">
+                自发自收测试模式
+              </el-checkbox>
+              <el-tooltip content="AO通道生成测试信号，AI通道采集" placement="right">
+                <el-icon style="margin-left: 4px"><InfoFilled /></el-icon>
+              </el-tooltip>
+            </div>
+            
+            <div class="control-row">
+              <label class="control-label">采样频率:</label>
+              <el-select v-model="sampleRate" @change="onSampleRateChange">
                 <el-option label="1 kHz" :value="1000" />
                 <el-option label="10 kHz" :value="10000" />
+                <el-option label="50 kHz" :value="50000" />
                 <el-option label="100 kHz" :value="100000" />
-                <el-option label="1 MHz" :value="1000000" />
               </el-select>
-            </el-form-item>
-            <el-form-item label="缓冲区大小">
-              <el-input-number v-model="settings.bufferSize" :min="1000" :max="100000" :step="1000" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="AI通道配置">
-              <div v-for="(channel, index) in settings.aiChannels" :key="index" class="channel-config">
-                <el-checkbox v-model="channel.enabled">通道 {{ index }}</el-checkbox>
-                <el-select v-model="channel.range" size="small" style="width: 100px; margin-left: 8px;">
-                  <el-option label="±10V" value="±10V" />
-                  <el-option label="±5V" value="±5V" />
-                  <el-option label="±2V" value="±2V" />
-                  <el-option label="±1V" value="±1V" />
+            </div>
+            
+            <div class="control-row">
+              <label class="control-label">缓冲区大小:</label>
+              <el-select v-model="bufferSize" @change="onBufferSizeChange">
+                <el-option label="1000 点" :value="1000" />
+                <el-option label="5000 点" :value="5000" />
+                <el-option label="10000 点" :value="10000" />
+              </el-select>
+            </div>
+          </div>
+        </el-card>
+
+        <!-- 通道配置区 -->
+        <el-card class="control-section">
+          <template #header>
+            <div class="section-header">
+              <el-icon><DataAnalysis /></el-icon>
+              <span>AI通道配置</span>
+            </div>
+          </template>
+          
+          <div class="channel-config">
+            <div v-for="channel in channels" :key="channel.id" class="channel-item">
+              <div class="channel-header">
+                <el-switch 
+                  v-model="channel.enabled"
+                  @change="onChannelToggle(channel.id)"
+                />
+                <div class="channel-color" :style="{ backgroundColor: channel.color }"></div>
+                <span class="channel-name">{{ channel.name }}</span>
+              </div>
+              
+              <div class="channel-controls" v-if="channel.enabled">
+                <div class="signal-type">
+                  <el-select v-model="channel.signalType" size="small" @change="updateSignal">
+                    <el-option label="正弦波" value="sine" />
+                    <el-option label="方波" value="square" />
+                    <el-option label="三角波" value="triangle" />
+                    <el-option label="锯齿波" value="sawtooth" />
+                    <el-option label="噪声" value="noise" />
+                  </el-select>
+                </div>
+                <div class="signal-params">
+                  <div class="param-group">
+                    <label>频率: {{ channel.frequency }}Hz</label>
+                    <el-slider 
+                      v-model="channel.frequency"
+                      :min="0.1" 
+                      :max="100" 
+                      :step="0.1"
+                      @change="updateSignal"
+                      size="small"
+                    />
+                  </div>
+                  <div class="param-group">
+                    <label>幅度: {{ channel.amplitude }}V</label>
+                    <el-slider 
+                      v-model="channel.amplitude"
+                      :min="0.1" 
+                      :max="10" 
+                      :step="0.1"
+                      @change="updateSignal"
+                      size="small"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </el-card>
+
+        <!-- 统计信息 -->
+        <el-card class="control-section">
+          <template #header>
+            <div class="section-header">
+              <el-icon><DataBoard /></el-icon>
+              <span>实时统计</span>
+            </div>
+          </template>
+          
+          <div class="statistics">
+            <div class="stat-item">
+              <span class="stat-label">采集点数:</span>
+              <span class="stat-value">{{ totalPoints }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">采集时间:</span>
+              <span class="stat-value">{{ formatTime(runningTime) }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">数据速率:</span>
+              <span class="stat-value">{{ dataRate }} KB/s</span>
+            </div>
+          </div>
+        </el-card>
+      </div>
+
+      <!-- 右侧波形显示区 -->
+      <div class="waveform-panel">
+        <el-card class="waveform-container">
+          <template #header>
+            <div class="section-header">
+              <el-icon><TrendCharts /></el-icon>
+              <span>实时波形显示</span>
+              <div class="waveform-controls">
+                <el-button-group size="small">
+                  <el-button @click="zoomIn" :icon="ZoomIn" />
+                  <el-button @click="zoomOut" :icon="ZoomOut" />
+                  <el-button @click="autoScale" :icon="FullScreen" />
+                </el-button-group>
+                <el-select v-model="displayMode" size="small" style="width: 120px; margin-left: 12px">
+                  <el-option label="时域" value="time" />
+                  <el-option label="频域" value="frequency" />
+                  <el-option label="XY模式" value="xy" />
                 </el-select>
               </div>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="showSettings = false">取消</el-button>
-          <el-button type="primary" @click="applySettings">应用配置</el-button>
-        </span>
-      </template>
-    </el-dialog>
+            </div>
+          </template>
+          
+          <div class="chart-area">
+            <!-- 简化的SVG波形显示 -->
+            <div class="simple-waveform">
+              <svg width="100%" height="400" viewBox="0 0 800 400">
+                <!-- 网格 -->
+                <defs>
+                  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e5e7eb" stroke-width="1"/>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+                
+                <!-- 波形 -->
+                <g v-for="(channel, index) in enabledChannels" :key="channel.id">
+                  <path 
+                    :d="generateWaveform(channel, index)"
+                    fill="none" 
+                    :stroke="channel.color" 
+                    stroke-width="2"
+                  />
+                </g>
+                
+                <!-- 数值显示 -->
+                <g v-for="(channel, index) in enabledChannels" :key="`value-${channel.id}`">
+                  <text 
+                    :x="20" 
+                    :y="30 + index * 20" 
+                    :fill="channel.color"
+                    font-size="14"
+                    font-weight="bold"
+                  >
+                    {{ channel.name }}: {{ getCurrentValue(channel).toFixed(2) }}V
+                  </text>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </el-card>
+      </div>
+    </div>
+
+    <!-- 底部信息栏 -->
+    <div class="status-bar">
+      <div class="status-left">
+        <el-icon class="status-icon"><Monitor /></el-icon>
+        <span>USB-1601 模拟器已连接</span>
+        <el-divider direction="vertical" />
+        <span>活跃通道: {{ enabledChannels.length }}</span>
+        <el-divider direction="vertical" />
+        <span>{{ sampleRate/1000 }}kHz @ 16bit</span>
+      </div>
+      <div class="status-right">
+        <span class="version-info">SeeSharpTools Web v1.0.0</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, computed, nextTick } from 'vue'
-import { ElMessage, ElNotification } from 'element-plus'
-import {
-  DataAnalysis,
-  VideoPlay,
-  VideoPause,
-  Connection,
-  Setting,
-  DataLine,
-  SwitchButton,
-  DataBoard,
-  VideoPlay as Play,
-  Camera,
-  Download,
-  Document
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { 
+  Cpu, Setting, DataAnalysis, DataBoard, TrendCharts, Monitor,
+  VideoPlay, VideoPause, Delete, ZoomIn, ZoomOut, FullScreen, InfoFilled
 } from '@element-plus/icons-vue'
-import WaveformChart from '@/components/charts/SimpleWaveformChart.vue'
-import { dataAcquisitionService } from '@/services/dataAcquisition.service'
-import { csharpRunnerService } from '@/services/csharpRunner.service'
+import axios from 'axios'
 
-// 响应式状态
-const acquiring = ref(false)
-const operationLoading = ref(false)
-const deviceConnected = ref(false)
-const simulationMode = ref(true)
-const showSettings = ref(false)
-const systemStatus = ref('就绪')
-const deviceId = ref(0)
+// 简化的通道接口
+interface SimpleChannel {
+  id: string
+  name: string
+  enabled: boolean
+  color: string
+  signalType: 'sine' | 'square' | 'triangle' | 'sawtooth' | 'noise'
+  frequency: number
+  amplitude: number
+  phase: number
+}
 
-// AI数据相关
-const aiEnabled = ref(true)
-const aiData = ref<any[]>([])
-const aiChartRef = ref()
-const totalSamples = ref(0)
-const acquisitionStartTime = ref(0)
-const acquisitionDuration = ref(0)
+// 响应式数据
+const isRunning = ref(false)
+const sampleRate = ref(10000)
+const bufferSize = ref(1000)
+const totalPoints = ref(0)
+const runningTime = ref(0)
+const displayMode = ref('time')
+const currentTime = ref(0)
+const useHardware = ref(false)
+const modeSwitching = ref(false)
+const selfTestMode = ref(false)
+const currentTaskId = ref<number | null>(null)
 
-// AO输出控制
-const aoEnabled = ref(true)
-const aoChannels = reactive([
-  { id: 0, value: 0.0 },
-  { id: 1, value: 0.0 }
+// 简化的通道配置
+const channels = ref<SimpleChannel[]>([
+  { id: 'AI0', name: 'AI0', enabled: true, color: '#3B82F6', signalType: 'sine', frequency: 5, amplitude: 5, phase: 0 },
+  { id: 'AI1', name: 'AI1', enabled: true, color: '#EF4444', signalType: 'sine', frequency: 2, amplitude: 3, phase: Math.PI/2 },
+  { id: 'AI2', name: 'AI2', enabled: false, color: '#10B981', signalType: 'square', frequency: 1, amplitude: 4, phase: 0 },
+  { id: 'AI3', name: 'AI3', enabled: false, color: '#F59E0B', signalType: 'triangle', frequency: 3, amplitude: 2, phase: 0 }
 ])
 
-// 数字IO状态
-const doStates = reactive(new Array(8).fill(false))
-const diStates = reactive(new Array(8).fill(false))
+let updateTimer: number | null = null
+let statsTimer: number | null = null
 
-// 性能统计
-const currentSampleRate = ref(10000)
-const dataQuality = ref(0.999)
-const memoryUsage = ref(50 * 1024 * 1024)
-const cpuUsage = ref(5.2)
-
-// C# Runner
-const csharpRunning = ref(false)
-const csharpOutput = ref('')
-
-// 任务管理
-const currentTaskId = ref(0)
-const acquisitionTimer = ref<number>()
-
-// 配置设置
-const settings = reactive({
-  deviceId: 0,
-  sampleRate: 10000,
-  bufferSize: 10000,
-  aiChannels: Array.from({ length: 4 }, (_, i) => ({
-    enabled: i < 2, // 默认启用前2个通道
-    range: '±10V'
-  }))
-})
-
-// AI通道配置
-const aiChannelConfigs = computed(() => 
-  settings.aiChannels
-    .map((channel, index) => ({
-      id: `AI${index}`,
-      name: `AI${index}`,
-      color: ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'][index],
-      enabled: channel.enabled,
-      unit: 'V',
-      lastValue: null
-    }))
-    .filter(config => config.enabled)
+// 计算属性
+const enabledChannels = computed(() => 
+  channels.value.filter(ch => ch.enabled)
 )
 
-// 波形图表配置
-const waveformOptions = {
-  autoScale: true,
-  logarithmic: false,
-  legendVisible: true,
-  gridEnabled: true,
-  minorGridEnabled: false,
-  theme: 'light',
-  realTime: true,
-  bufferSize: 1000,
-  triggerMode: 'auto',
-  triggerLevel: 0,
-  triggerChannel: 0
-}
-
-// 转换数据格式以适配SimpleWaveformChart
-const waveformData = computed(() => aiData.value)
-
-// 初始化
-onMounted(async () => {
-  await connectDevice()
-  
-  // 立即开始数据采集演示
-  await startAcquisition()
-  
-  // 模拟数字输入变化
-  setInterval(updateDigitalInputs, 2000)
-  
-  // 更新采集时长
-  setInterval(() => {
-    if (acquiring.value) {
-      acquisitionDuration.value = Date.now() - acquisitionStartTime.value
-    }
-  }, 1000)
+const dataRate = computed(() => {
+  if (!isRunning.value) return '0'
+  const bytesPerSecond = enabledChannels.value.length * sampleRate.value * 2
+  return (bytesPerSecond / 1024).toFixed(1)
 })
 
+// 生命周期钩子
 onUnmounted(() => {
-  if (acquiring.value) {
-    stopAcquisition()
-  }
-  if (acquisitionTimer.value) {
-    clearInterval(acquisitionTimer.value)
-  }
+  stopAcquisition()
 })
 
-// 设备连接
-async function connectDevice() {
-  try {
-    operationLoading.value = true
-    systemStatus.value = '连接中'
-    
-    // 检测硬件设备
-    const devices = await dataAcquisitionService.getActiveTasks()
-    
-    if (devices.length > 0) {
-      deviceConnected.value = true
-      simulationMode.value = false
-      systemStatus.value = '硬件已连接'
-      ElMessage.success('USB-1601硬件设备连接成功')
-    } else {
-      deviceConnected.value = true
-      simulationMode.value = true
-      systemStatus.value = '模拟模式'
-      ElMessage.info('硬件设备未检测到，使用模拟模式演示')
-    }
-  } catch (error) {
-    deviceConnected.value = true
-    simulationMode.value = true
-    systemStatus.value = '模拟模式'
-    ElMessage.warning('使用模拟模式进行演示')
-  } finally {
-    operationLoading.value = false
-  }
-}
-
-// 开始/停止采集
-async function toggleAcquisition() {
-  if (acquiring.value) {
-    await stopAcquisition()
+// 控制方法
+function toggleAcquisition() {
+  if (isRunning.value) {
+    stopAcquisition()
   } else {
-    await startAcquisition()
+    startAcquisition()
   }
 }
 
-// 开始采集
 async function startAcquisition() {
   try {
-    operationLoading.value = true
-    
-    currentTaskId.value = Date.now()
-    
-    const config = {
-      deviceId: settings.deviceId,
-      sampleRate: settings.sampleRate,
-      channels: settings.aiChannels
-        .map((channel, index) => ({
-          channelId: index,
-          name: `AI${index}`,
-          enabled: channel.enabled && aiEnabled.value,
-          rangeMin: channel.range === '±10V' ? -10 : 
-                   channel.range === '±5V' ? -5 :
-                   channel.range === '±2V' ? -2 : -1,
-          rangeMax: channel.range === '±10V' ? 10 : 
-                   channel.range === '±5V' ? 5 :
-                   channel.range === '±2V' ? 2 : 1,
-          coupling: 'DC' as 'DC' | 'AC' | 'Ground',
-          impedance: 'HighZ' as 'HighZ' | 'Ohm50' | 'Ohm75'
-        }))
-        .filter(ch => ch.enabled),
-      mode: 'Continuous' as 'Continuous' | 'Finite' | 'Triggered',
-      bufferSize: settings.bufferSize,
-      enableCompression: true,
-      enableQualityCheck: true
-    }
-
-    await dataAcquisitionService.startAcquisition(currentTaskId.value, config)
-    
-    acquiring.value = true
-    acquisitionStartTime.value = Date.now()
-    totalSamples.value = 0
-    systemStatus.value = '采集中'
-    
-    // 开始数据接收循环
-    startDataReceiveLoop()
-    
-    ElMessage.success('数据采集已开始')
-    ElNotification({
-      title: 'USB-1601 演示',
-      message: `已开始${simulationMode.value ? '模拟' : '硬件'}数据采集`,
-      type: 'success'
-    })
-    
-  } catch (error: any) {
-    ElMessage.error('启动数据采集失败: ' + error.message)
-  } finally {
-    operationLoading.value = false
-  }
-}
-
-// 停止采集
-async function stopAcquisition() {
-  try {
-    operationLoading.value = true
-    
-    if (currentTaskId.value) {
-      await dataAcquisitionService.stopAcquisition(currentTaskId.value)
-    }
-    
-    acquiring.value = false
-    systemStatus.value = '已停止'
-    
-    if (acquisitionTimer.value) {
-      clearInterval(acquisitionTimer.value)
-    }
-    
-    ElMessage.success('数据采集已停止')
-    
-  } catch (error: any) {
-    ElMessage.error('停止数据采集失败: ' + error.message)
-  } finally {
-    operationLoading.value = false
-  }
-}
-
-// 数据接收循环
-function startDataReceiveLoop() {
-  if (acquisitionTimer.value) {
-    clearInterval(acquisitionTimer.value)
-  }
-  
-  acquisitionTimer.value = setInterval(async () => {
-    if (!acquiring.value) return
-    
-    try {
-      // 获取任务状态
-      const status = await dataAcquisitionService.getTaskStatus(currentTaskId.value)
-      totalSamples.value = status.samplesAcquired || totalSamples.value
+    if (useHardware.value) {
+      // 硬件模式：调用后端API
+      const taskId = Date.now()
+      const enabledChs = channels.value.filter(ch => ch.enabled)
       
-      // 获取性能统计
-      const perf = await dataAcquisitionService.getPerformanceStats(currentTaskId.value)
-      if (perf) {
-        currentSampleRate.value = perf.actualSampleRate || settings.sampleRate
-        cpuUsage.value = perf.cpuUsage || 5.2
-        memoryUsage.value = (perf.memoryUsage || 50) * 1024 * 1024
+      const config = {
+        taskId,
+        configuration: {
+          deviceId: 1,
+          sampleRate: sampleRate.value,
+          channels: enabledChs.map((ch, idx) => ({
+            channelId: idx,
+            name: ch.name,
+            enabled: true,
+            rangeMin: -10,
+            rangeMax: 10
+          })),
+          mode: 0, // Continuous
+          bufferSize: bufferSize.value,
+          selfTestMode: selfTestMode.value
+        }
       }
       
-      // 模拟生成实时数据用于图表显示
-      generateRealtimeData()
+      const response = await axios.post('http://localhost:5001/api/DataAcquisition/start', config)
       
-    } catch (error) {
-      console.error('数据接收错误:', error)
+      if (response.data.success) {
+        currentTaskId.value = taskId
+        isRunning.value = true
+        totalPoints.value = 0
+        runningTime.value = 0
+        
+        updateTimer = window.setInterval(() => {
+          currentTime.value += 0.05
+          totalPoints.value += enabledChannels.value.length
+        }, 50)
+        
+        statsTimer = window.setInterval(() => {
+          runningTime.value += 0.1
+        }, 100)
+        
+        ElMessage.success('硬件采集已启动')
+      } else {
+        ElMessage.error('启动硬件采集失败')
+      }
+    } else {
+      // 模拟模式
+      isRunning.value = true
+      totalPoints.value = 0
+      runningTime.value = 0
+      
+      updateTimer = window.setInterval(() => {
+        currentTime.value += 0.05
+        totalPoints.value += enabledChannels.value.length
+      }, 50)
+      
+      statsTimer = window.setInterval(() => {
+        runningTime.value += 0.1
+      }, 100)
+      
+      ElMessage.success('模拟数据采集已开始')
     }
-  }, 100) // 100ms更新间隔
-}
-
-// 生成实时数据
-function generateRealtimeData() {
-  const now = Date.now()
-  const newData: any = { timestamp: now }
-  
-  // 为每个启用的AI通道生成数据
-  aiChannelConfigs.value.forEach((config, index) => {
-    const t = now / 1000
-    const frequency = 5 * (index + 1) // 不同通道不同频率
-    const amplitude = 2 + index * 0.5
-    const noise = (Math.random() - 0.5) * 0.2
-    
-    newData[config.id] = amplitude * Math.sin(2 * Math.PI * frequency * t) + noise
-  })
-  
-  aiData.value.push(newData)
-  
-  // 保持数据量在合理范围内（最近1000个点）
-  if (aiData.value.length > 1000) {
-    aiData.value.splice(0, aiData.value.length - 1000)
-  }
-}
-
-// AO输出设置
-async function setAOValue(channelId: number, value: number) {
-  try {
-    // 这里可以调用实际的AO输出API
-    console.log(`设置AO${channelId}输出电压: ${value}V`)
-    ElMessage.success(`AO${channelId} 输出设置为 ${value.toFixed(1)}V`)
   } catch (error) {
-    ElMessage.error('设置AO输出失败')
+    console.error('启动采集失败:', error)
+    ElMessage.error('启动采集失败')
   }
 }
 
-// 数字输出切换
-function toggleDO(pin: number) {
-  doStates[pin] = !doStates[pin]
-  console.log(`DO${pin}: ${doStates[pin]}`)
-  ElMessage.info(`数字输出P${pin}: ${doStates[pin] ? 'HIGH' : 'LOW'}`)
-}
-
-// 更新数字输入（模拟）
-function updateDigitalInputs() {
-  for (let i = 0; i < 8; i++) {
-    diStates[i] = Math.random() > 0.7 // 30%概率为HIGH
-  }
-}
-
-// C# Runner演示
-async function runCSharpDemo() {
+async function stopAcquisition() {
   try {
-    csharpRunning.value = true
-    csharpOutput.value = ''
-    
-    // USB-1601模拟代码
-    const csharpCode = `
-using System;
-using System.Collections.Generic;
-
-public class USB1601Demo 
-{
-    public static void Main()
-    {
-        Console.WriteLine("=== 简仪科技USB-1601数据采集演示 ===");
-        Console.WriteLine();
-        
-        // 模拟设备初始化
-        Console.WriteLine("1. 初始化USB-1601设备...");
-        var deviceId = "${settings.deviceId}";
-        var sampleRate = ${settings.sampleRate};
-        Console.WriteLine($"设备ID: {deviceId}");
-        Console.WriteLine($"采样率: {sampleRate:N0} Hz");
-        Console.WriteLine();
-        
-        // 模拟AI数据采集
-        Console.WriteLine("2. 模拟AI数据采集:");
-        var data = new List<double[]>();
-        for (int i = 0; i < 5; i++)
-        {
-            var channelData = new double[10];
-            for (int j = 0; j < 10; j++)
-            {
-                var t = (i * 10 + j) / (double)sampleRate;
-                channelData[j] = 5 * Math.Sin(2 * Math.PI * 10 * t) + 
-                                0.1 * (new Random().NextDouble() - 0.5);
-            }
-            data.Add(channelData);
-            Console.WriteLine($"通道{i}: [{string.Join(", ", Array.ConvertAll(channelData.Take(5).ToArray(), x => x.ToString("F2")))}...]");
-        }
-        
-        Console.WriteLine();
-        Console.WriteLine("3. 数据统计:");
-        Console.WriteLine($"采样点数: {data.Count * 10:N0}");
-        Console.WriteLine($"数据质量: 99.9%");
-        Console.WriteLine($"内存使用: {(data.Count * 10 * 8 / 1024.0):F1} KB");
-        
-        Console.WriteLine();
-        Console.WriteLine("✅ USB-1601演示完成!");
+    if (useHardware.value && currentTaskId.value) {
+      // 硬件模式：调用后端API
+      const response = await axios.post(`http://localhost:5001/api/DataAcquisition/stop/${currentTaskId.value}`)
+      
+      if (response.data.success) {
+        currentTaskId.value = null
+        ElMessage.info('硬件采集已停止')
+      }
+    } else {
+      ElMessage.info('模拟数据采集已停止')
     }
-}`;
-
-    const result = await csharpRunnerService.runCode({
-      code: csharpCode,
-      template: 'JYUSB1601'
-    })
     
-    csharpOutput.value = result.output || result.consoleOutput || '执行成功'
+    isRunning.value = false
     
-    ElMessage.success('C#代码执行完成')
+    if (updateTimer) {
+      clearInterval(updateTimer)
+      updateTimer = null
+    }
     
-  } catch (error: any) {
-    csharpOutput.value = `执行错误: ${error.message}`
-    ElMessage.error('C#代码执行失败')
-  } finally {
-    csharpRunning.value = false
+    if (statsTimer) {
+      clearInterval(statsTimer)
+      statsTimer = null
+    }
+  } catch (error) {
+    console.error('停止采集失败:', error)
+    ElMessage.error('停止采集失败')
   }
 }
 
-// 应用配置
-function applySettings() {
-  showSettings.value = false
-  ElMessage.success('配置已应用')
+function clearData() {
+  currentTime.value = 0
+  totalPoints.value = 0
+  runningTime.value = 0
+  ElMessage.success('数据已清除')
+}
+
+// 配置变更处理
+function onSampleRateChange() {
+  ElMessage.success(`采样频率已更改为 ${sampleRate.value/1000}kHz`)
+}
+
+function onBufferSizeChange() {
+  ElMessage.success(`缓冲区大小已更改为 ${bufferSize.value} 点`)
+}
+
+function onChannelToggle(channelId: string) {
+  const channel = channels.value.find(ch => ch.id === channelId)
+  if (channel) {
+    ElMessage.info(`通道 ${channel.name} ${channel.enabled ? '已启用' : '已禁用'}`)
+  }
+}
+
+function updateSignal() {
+  // 信号参数已更新
+}
+
+// 波形生成函数
+function generateWaveform(channel: SimpleChannel, index: number): string {
+  const points: string[] = []
+  const centerY = 200 + index * 50
+  const timeSpan = 10 // 10秒的时间跨度
+  const pointCount = 200
+  
+  for (let i = 0; i < pointCount; i++) {
+    const t = (i / pointCount) * timeSpan + currentTime.value
+    let value = 0
+    
+    switch (channel.signalType) {
+      case 'sine':
+        value = Math.sin(2 * Math.PI * channel.frequency * t + channel.phase)
+        break
+      case 'square':
+        value = Math.sign(Math.sin(2 * Math.PI * channel.frequency * t + channel.phase))
+        break
+      case 'triangle':
+        const trianglePhase = (channel.frequency * t + channel.phase / (2 * Math.PI)) % 1
+        value = trianglePhase < 0.5 ? 4 * trianglePhase - 1 : 3 - 4 * trianglePhase
+        break
+      case 'sawtooth':
+        value = 2 * ((channel.frequency * t + channel.phase / (2 * Math.PI)) % 1) - 1
+        break
+      case 'noise':
+        value = (Math.random() - 0.5) * 2
+        break
+    }
+    
+    const x = (i / pointCount) * 760 + 20
+    const y = centerY - value * channel.amplitude * 20
+    
+    points.push(i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`)
+  }
+  
+  return points.join(' ')
+}
+
+function getCurrentValue(channel: SimpleChannel): number {
+  let value = 0
+  const t = currentTime.value
+  
+  switch (channel.signalType) {
+    case 'sine':
+      value = Math.sin(2 * Math.PI * channel.frequency * t + channel.phase)
+      break
+    case 'square':
+      value = Math.sign(Math.sin(2 * Math.PI * channel.frequency * t + channel.phase))
+      break
+    case 'triangle':
+      const trianglePhase = (channel.frequency * t + channel.phase / (2 * Math.PI)) % 1
+      value = trianglePhase < 0.5 ? 4 * trianglePhase - 1 : 3 - 4 * trianglePhase
+      break
+    case 'sawtooth':
+      value = 2 * ((channel.frequency * t + channel.phase / (2 * Math.PI)) % 1) - 1
+      break
+    case 'noise':
+      value = (Math.random() - 0.5) * 2
+      break
+  }
+  
+  return value * channel.amplitude
+}
+
+// 图表控制
+function zoomIn() {
+  ElMessage.info('缩放功能')
+}
+
+function zoomOut() {
+  ElMessage.info('缩小功能')
+}
+
+function autoScale() {
+  ElMessage.info('自动缩放功能')
 }
 
 // 工具函数
-function formatDuration(ms: number): string {
-  const seconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60)
+  const secs = (seconds % 60).toFixed(1)
+  return `${mins}:${secs.padStart(4, '0')}`
+}
+
+// 切换模式
+async function switchMode() {
+  modeSwitching.value = true
   
-  if (hours > 0) {
-    return `${hours}:${String(minutes % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
-  } else {
-    return `${minutes}:${String(seconds % 60).padStart(2, '0')}`
+  try {
+    // 如果正在运行，先停止
+    if (isRunning.value) {
+      await stopAcquisition()
+    }
+    
+    // 调用后端API切换模式
+    const response = await axios.post('http://localhost:5001/api/DataAcquisition/set-mode', {
+      useHardware: useHardware.value
+    })
+    
+    if (response.data.success) {
+      ElMessage.success(response.data.message)
+    } else {
+      // 切换失败，恢复原状态
+      useHardware.value = !useHardware.value
+      ElMessage.error('模式切换失败')
+    }
+  } catch (error) {
+    console.error('模式切换失败:', error)
+    // 切换失败，恢复原状态
+    useHardware.value = !useHardware.value
+    ElMessage.error('模式切换失败')
+  } finally {
+    modeSwitching.value = false
   }
 }
+
+// 检查当前模式
+async function checkCurrentMode() {
+  try {
+    const response = await axios.get('http://localhost:5001/api/DataAcquisition/current-mode')
+    if (response.data) {
+      useHardware.value = response.data.isHardware
+    }
+  } catch (error) {
+    console.error('获取当前模式失败:', error)
+  }
+}
+
+// 修改生命周期
+onMounted(() => {
+  checkCurrentMode()
+  ElMessage.success('USB-1601 数据采集卡已初始化')
+})
 </script>
 
 <style scoped>
-.usb1601-demo {
+.usb1601-simulator-demo {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  border-radius: 16px;
+  padding: 24px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
-.demo-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: 20px 24px;
+.control-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
 
-.header-left {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.demo-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.title-icon {
-  color: #667eea;
-  font-size: 24px;
-}
-
-.demo-status {
+.title-section .control-title {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+}
+
+.title-icon {
+  font-size: 28px;
+  color: #FFD700;
+}
+
+.control-subtitle {
+  margin: 0;
   font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
 }
 
-.status-indicator {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-weight: 500;
-  font-size: 12px;
+.header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
-.status-indicator.就绪, .status-indicator.已停止 {
-  background: #e3f2fd;
-  color: #1976d2;
+.simulator-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+  min-height: 600px;
 }
 
-.status-indicator.连接中 {
-  background: #fff3e0;
-  color: #f57c00;
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.status-indicator.采集中 {
-  background: #e8f5e8;
-  color: #2e7d32;
-  animation: pulse 2s infinite;
-}
-
-.device-info, .mode-info {
-  color: #666;
-  font-size: 12px;
-}
-
-.demo-body {
-  padding: 24px;
-}
-
-.data-display {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.channel-section {
-  margin-bottom: 24px;
+.control-section {
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .section-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
-}
-
-.section-header h4 {
-  display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0;
-  color: #333;
-  font-size: 16px;
   font-weight: 600;
-}
-
-.data-chart {
-  height: 280px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  background: #fafbfc;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-/* 确保波形图表使用浅色背景 */
-.data-chart :deep(.chart-container) {
-  background: #fafbfc !important;
-}
-
-.data-chart :deep(.waveform-chart-wrapper .chart-container) {
-  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%) !important;
-}
-
-.data-chart :deep(.waveform-chart-wrapper .professional-instrument .chart-container) {
-  background: #fafbfc !important;
-  border: 1px solid #e0e6ed;
-}
-
-.ao-controls {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 6px;
-}
-
-.ao-channel {
-  text-align: center;
-  padding: 12px;
-  background: white;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
-}
-
-.ao-channel label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 8px;
   color: #333;
 }
 
-.ao-value {
-  margin-top: 8px;
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.control-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  flex: 1;
+  min-width: 120px;
+}
+
+.control-label {
+  font-size: 13px;
   font-weight: 600;
-  color: #667eea;
+  color: #555;
+  min-width: 80px;
 }
 
-.control-panel {
-  background: rgba(255, 255, 255, 0.98);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  height: fit-content;
+.channel-config {
+  max-height: 300px;
+  overflow-y: auto;
 }
 
-.dio-section {
-  margin-bottom: 24px;
+.channel-item {
+  border-bottom: 1px solid #eee;
+  padding: 12px 0;
 }
 
-.dio-controls {
-  space-y: 16px;
+.channel-item:last-child {
+  border-bottom: none;
 }
 
-.do-group, .di-group {
-  margin-bottom: 16px;
-}
-
-.do-group label, .di-group label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-.do-buttons {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-}
-
-.di-indicators {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-}
-
-.di-led {
+.channel-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 32px;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.channel-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.channel-name {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.channel-controls {
+  padding-left: 40px;
+}
+
+.signal-type {
+  margin-bottom: 12px;
+}
+
+.signal-params {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.param-group label {
   font-size: 12px;
-  font-weight: 500;
   color: #666;
-  transition: all 0.3s;
+  margin-bottom: 4px;
+  display: block;
 }
 
-.di-led.active {
-  background: #4caf50;
-  color: white;
-  border-color: #4caf50;
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
-}
-
-.stats-section {
-  margin-bottom: 24px;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+.statistics {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
@@ -898,10 +754,6 @@ function formatDuration(ms: number): string {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
 }
 
 .stat-label {
@@ -912,58 +764,130 @@ function formatDuration(ms: number): string {
 .stat-value {
   font-weight: 600;
   color: #333;
+  font-family: 'Courier New', monospace;
+}
+
+.waveform-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.waveform-container {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.waveform-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.chart-area {
+  height: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
   font-size: 13px;
 }
 
-.csharp-section {
-  margin-bottom: 16px;
-}
-
-.csharp-output {
-  margin-top: 12px;
-  max-height: 200px;
-  overflow-y: auto;
-  background: #1e1e1e;
-  color: #d4d4d4;
-  border-radius: 4px;
-  padding: 12px;
-  font-family: 'Courier New', monospace;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.channel-config {
+.status-left {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 8px;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+.status-icon {
+  color: #4ade80;
 }
 
-/* 响应式适配 */
+.version-info {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+/* 深色主题适配 */
+:deep(.el-card__header) {
+  background: rgba(248, 249, 250, 0.8);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+:deep(.el-select),
+:deep(.el-slider) {
+  width: 100%;
+}
+
+:deep(.el-slider__runway) {
+  background-color: #e5e7eb;
+}
+
+:deep(.el-slider__bar) {
+  background-color: #667eea;
+}
+
+:deep(.el-slider__button) {
+  border-color: #667eea;
+}
+
+/* 响应式设计 */
 @media (max-width: 1200px) {
-  .demo-body .el-col:first-child {
-    margin-bottom: 16px;
+  .simulator-layout {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .simulator-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .control-panel {
+    order: 2;
+  }
+  
+  .waveform-panel {
+    order: 1;
   }
 }
 
 @media (max-width: 768px) {
-  .demo-header {
+  .usb1601-simulator-demo {
+    padding: 16px;
+  }
+  
+  .control-header {
     flex-direction: column;
-    align-items: stretch;
     gap: 16px;
+    text-align: center;
   }
   
-  .header-right {
-    display: flex;
-    justify-content: center;
+  .title-section .control-title {
+    font-size: 20px;
   }
   
-  .demo-status {
-    justify-content: center;
+  .chart-area {
+    height: 400px;
+  }
+  
+  .status-bar {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
   }
 }
 </style>

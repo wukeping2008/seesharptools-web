@@ -419,10 +419,10 @@ namespace SeeSharpBackend.Services.MISD
                 return "JY5500";
             if (device.Model.StartsWith("JYUSB"))
                 return "JYUSB1601";
-            if (device.Model == "MockDevice")
+            if (device.Model.Contains("Mock") || device.Model == "MockUSB-1601")
                 return "MockDriver";
             
-            return device.Model;
+            return "MockDriver"; // 默认使用模拟驱动
         }
         
         /// <summary>
@@ -566,13 +566,13 @@ namespace SeeSharpBackend.Services.MISD
         {
             return taskType switch
             {
-                "AI" => "JY5500AITask",
-                "AO" => "JY5500AOTask",
-                "DI" => "JY5500DITask",
-                "DO" => "JY5500DOTask",
-                "CI" => "JY5500CITask",
-                "CO" => "JY5500COTask",
-                _ => throw new ArgumentException($"不支持的任务类型: {taskType}")
+                "AI" => "MockAITask",
+                "AO" => "MockAOTask", 
+                "DI" => "MockDITask",
+                "DO" => "MockDOTask",
+                "CI" => "MockCITask",
+                "CO" => "MockCOTask",
+                _ => $"Mock{taskType}Task"
             };
         }
         

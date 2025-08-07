@@ -197,6 +197,13 @@
                     <span>数据采集卡</span>
                   </router-link>
                 </el-dropdown-item>
+                <el-dropdown-item divided>
+                  <router-link to="/usb1601-demo" class="dropdown-link">
+                    <el-icon><Cpu /></el-icon>
+                    <span>USB-1601 高精度采集</span>
+                    <el-tag type="success" size="small" style="margin-left: 8px">新</el-tag>
+                  </router-link>
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

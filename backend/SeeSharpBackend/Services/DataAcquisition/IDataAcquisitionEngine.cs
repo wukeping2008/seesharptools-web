@@ -157,6 +157,11 @@ namespace SeeSharpBackend.Services.DataAcquisition
         /// 启用数据质量检查
         /// </summary>
         public bool EnableQualityCheck { get; set; } = true;
+
+        /// <summary>
+        /// 自发自收测试模式
+        /// </summary>
+        public bool SelfTestMode { get; set; } = false;
     }
 
     /// <summary>

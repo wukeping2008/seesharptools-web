@@ -12,14 +12,35 @@ namespace SeeSharpBackend.Controllers
     public class DataAcquisitionController : ControllerBase
     {
         private readonly IDataAcquisitionEngine _acquisitionEngine;
+        private readonly USB1601DataAcquisitionEngine _usb1601Engine;
         private readonly ILogger<DataAcquisitionController> _logger;
 
         public DataAcquisitionController(
             IDataAcquisitionEngine acquisitionEngine,
+            USB1601DataAcquisitionEngine usb1601Engine,
             ILogger<DataAcquisitionController> logger)
         {
             _acquisitionEngine = acquisitionEngine;
+            _usb1601Engine = usb1601Engine;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// 调试端点 - 接收原始JSON
+        /// </summary>
+        [HttpPost("debug-start")]
+        public IActionResult DebugStartAcquisition([FromBody] object rawRequest)
+        {
+            try
+            {
+                _logger.LogInformation("收到原始请求数据: {RequestData}", System.Text.Json.JsonSerializer.Serialize(rawRequest));
+                return Ok(new { success = true, message = "调试信息已记录", receivedData = rawRequest });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "调试端点错误");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
 
         /// <summary>
@@ -32,8 +53,38 @@ namespace SeeSharpBackend.Controllers
         {
             try
             {
-                _logger.LogInformation("启动数据采集任务请求: TaskId={TaskId}, DeviceId={DeviceId}", 
-                    request.TaskId, request.Configuration.DeviceId);
+                // 添加详细的输入验证日志
+                _logger.LogInformation("收到数据采集启动请求 - TaskId: {TaskId}", request?.TaskId);
+                
+                if (request == null)
+                {
+                    _logger.LogWarning("启动请求为空");
+                    return BadRequest(new { success = false, message = "启动请求不能为空" });
+                }
+
+                if (request.Configuration == null)
+                {
+                    _logger.LogWarning("配置信息为空");
+                    return BadRequest(new { success = false, message = "采集配置不能为空" });
+                }
+
+                _logger.LogInformation("采集配置详情 - DeviceId: {DeviceId}, SampleRate: {SampleRate}, Channels: {ChannelCount}", 
+                    request.Configuration.DeviceId, 
+                    request.Configuration.SampleRate, 
+                    request.Configuration.Channels?.Count ?? 0);
+
+                // 验证必要的配置参数
+                if (request.Configuration.Channels == null || request.Configuration.Channels.Count == 0)
+                {
+                    _logger.LogWarning("通道配置为空或无效");
+                    return BadRequest(new { success = false, message = "至少需要配置一个采集通道" });
+                }
+
+                if (request.Configuration.SampleRate <= 0)
+                {
+                    _logger.LogWarning("采样率无效: {SampleRate}", request.Configuration.SampleRate);
+                    return BadRequest(new { success = false, message = "采样率必须大于0" });
+                }
 
                 var result = await _acquisitionEngine.StartAcquisitionAsync(request.TaskId, request.Configuration);
                 
@@ -341,6 +392,52 @@ namespace SeeSharpBackend.Controllers
         }
 
         /// <summary>
+        /// 切换硬件/模拟模式
+        /// </summary>
+        /// <param name="request">模式切换请求</param>
+        /// <returns>切换结果</returns>
+        [HttpPost("set-mode")]
+        public async Task<IActionResult> SetMode([FromBody] SetModeRequest request)
+        {
+            try
+            {
+                var result = await _usb1601Engine.SetModeAsync(request.UseHardware);
+                var currentMode = _usb1601Engine.GetCurrentMode();
+                
+                return Ok(new 
+                { 
+                    success = result, 
+                    mode = currentMode,
+                    message = $"已切换到{(currentMode == "Hardware" ? "硬件" : "模拟")}模式"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "切换模式时发生错误");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// 获取当前模式
+        /// </summary>
+        /// <returns>当前模式</returns>
+        [HttpGet("current-mode")]
+        public IActionResult GetCurrentMode()
+        {
+            try
+            {
+                var mode = _usb1601Engine.GetCurrentMode();
+                return Ok(new { mode, isHardware = mode == "Hardware" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "获取当前模式时发生错误");
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// 获取实时数据流（Server-Sent Events）
         /// </summary>
         /// <param name="taskId">任务ID</param>
@@ -405,5 +502,16 @@ namespace SeeSharpBackend.Controllers
         /// 采集配置
         /// </summary>
         public AcquisitionConfiguration Configuration { get; set; } = new();
+    }
+
+    /// <summary>
+    /// 模式切换请求
+    /// </summary>
+    public class SetModeRequest
+    {
+        /// <summary>
+        /// 是否使用硬件模式
+        /// </summary>
+        public bool UseHardware { get; set; }
     }
 }
