@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIGen-SeeSharp-Suite API测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .test-section h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .info {
+            color: #667eea;
+            font-style: italic;
+        }
+        .code-block {
+            background: #f4f4f4;
+            padding: 10px;
+            border-left: 3px solid #667eea;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-success { background: #4caf50; }
+        .status-error { background: #f44336; }
+        .status-loading { background: #ff9800; animation: pulse 1s infinite; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AIGen-SeeSharp-Suite API 测试面板</h1>
+        
+        <div class="test-section">
+            <h2>1. 测试连接状态</h2>
+            <button onclick="testConnection()">测试API连接</button>
+            <div id="connectionResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. 生成C#解决方案</h2>
+            
+            <label for="prompt">需求描述（支持MISD标准）:</label>
+            <textarea id="prompt" placeholder="例如：创建一个使用JYUSB-1601进行数据采集的程序，实现以下功能：
+1. 初始化USB-1601设备（设备ID为0）
+2. 配置模拟输入通道0，量程-10V到+10V
+3. 采样率设置为1000Hz
+4. 连续采集1000个数据点
+5. 将数据保存到CSV文件">创建一个使用JYUSB-1601进行模拟信号采集的控制台程序，配置通道0，采样率1000Hz，采集1000个数据点并显示平均值。</textarea>
+            
+            <label for="model">选择AI模型:</label>
+            <select id="model">
+                <option value="ernie-4.5-turbo-128k">ERNIE 4.5 Turbo (推荐)</option>
+                <option value="ernie-x1-turbo-32k">ERNIE X1 Turbo</option>
+                <option value="ernie-speed-128k">ERNIE Speed</option>
+                <option value="ernie-lite-8k">ERNIE Lite (快速)</option>
+            </select>
+            
+            <button onclick="generateSolution()">生成解决方案</button>
+            <div id="generateResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. 预设测试用例</h2>
+            <button onclick="runPresetTest('ai')">测试：模拟输入(AI)</button>
+            <button onclick="runPresetTest('ao')">测试：模拟输出(AO)</button>
+            <button onclick="runPresetTest('di')">测试：数字输入(DI)</button>
+            <button onclick="runPresetTest('do')">测试：数字输出(DO)</button>
+            <button onclick="runPresetTest('counter')">测试：计数器(CI)</button>
+            <div id="presetResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5100/api';
+        
+        function showLoading(elementId) {
+            const elem = document.getElementById(elementId);
+            elem.innerHTML = '<span class="status-indicator status-loading"></span>正在处理，请稍候...';
+        }
+        
+        function showResult(elementId, success, message, details = null) {
+            const elem = document.getElementById(elementId);
+            const statusClass = success ? 'status-success' : 'status-error';
+            const messageClass = success ? 'success' : 'error';
+            
+            let html = `<span class="status-indicator ${statusClass}"></span>`;
+            html += `<span class="${messageClass}">${message}</span>`;
+            
+            if (details) {
+                html += `<div class="code-block">${JSON.stringify(details, null, 2)}</div>`;
+            }
+            
+            elem.innerHTML = html;
+        }
+        
+        async function testConnection() {
+            showLoading('connectionResult');
+            try {
+                const response = await fetch(API_BASE_URL + '/generation/test', {
+                    method: 'GET'
+                });
+                
+                if (response.ok) {
+                    showResult('connectionResult', true, 'API连接成功！服务正在运行。');
+                } else {
+                    showResult('connectionResult', true, `API响应状态: ${response.status}。服务正在运行。`);
+                }
+            } catch (error) {
+                showResult('connectionResult', false, '无法连接到API服务', error.message);
+            }
+        }
+        
+        async function generateSolution() {
+            const prompt = document.getElementById('prompt').value.trim();
+            const model = document.getElementById('model').value;
+            
+            if (!prompt) {
+                showResult('generateResult', false, '请输入需求描述');
+                return;
+            }
+            
+            showLoading('generateResult');
+            
+            try {
+                const response = await fetch(API_BASE_URL + '/generation/generate-solution', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        model: model
+                    })
+                });
+                
+                if (response.ok) {
+                    // 下载生成的ZIP文件
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${model}-GeneratedSolution.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                    
+                    showResult('generateResult', true, 
+                        `✅ 解决方案生成成功！已下载 ${model}-GeneratedSolution.zip`,
+                        { 
+                            model: model,
+                            timestamp: new Date().toLocaleString(),
+                            promptLength: prompt.length
+                        }
+                    );
+                } else {
+                    const error = await response.json();
+                    showResult('generateResult', false, '生成失败', error);
+                }
+            } catch (error) {
+                showResult('generateResult', false, '请求失败', error.message);
+            }
+        }
+        
+        function runPresetTest(testType) {
+            const presets = {
+                'ai': {
+                    prompt: '创建一个JYUSB-1601模拟输入程序，使用MISD标准的AI功能，配置通道0-3，差分输入模式，采样率10kHz，连续采集模式，实时显示数据并计算RMS值。',
+                    model: 'ernie-4.5-turbo-128k'
+                },
+                'ao': {
+                    prompt: '创建一个JYUSB-1601模拟输出程序，使用MISD标准的AO功能，在通道0输出正弦波，频率100Hz，幅度5V，持续10秒。',
+                    model: 'ernie-4.5-turbo-128k'
+                },
+                'di': {
+                    prompt: '创建一个JYUSB-1601数字输入程序，使用MISD标准的DI功能，监控端口0的8个数字输入通道，检测状态变化并记录时间戳。',
+                    model: 'ernie-speed-128k'
+                },
+                'do': {
+                    prompt: '创建一个JYUSB-1601数字输出程序，使用MISD标准的DO功能，控制端口0的8个LED，实现流水灯效果。',
+                    model: 'ernie-speed-128k'
+                },
+                'counter': {
+                    prompt: '创建一个JYUSB-1601计数器程序，使用MISD标准的CI功能，配置计数器0进行频率测量，显示实时频率值。',
+                    model: 'ernie-lite-8k'
+                }
+            };
+            
+            const preset = presets[testType];
+            if (preset) {
+                document.getElementById('prompt').value = preset.prompt;
+                document.getElementById('model').value = preset.model;
+                showResult('presetResult', true, 
+                    `已加载 ${testType.toUpperCase()} 测试用例`,
+                    { testType: testType, model: preset.model }
+                );
+            }
+        }
+        
+        // 页面加载时测试连接
+        window.onload = function() {
+            testConnection();
+        };
+    </script>
+</body>
+</html>
