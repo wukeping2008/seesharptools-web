@@ -3,6 +3,8 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using SeeSharpBackend.Services.AI;
+using SeeSharpBackend.Services.Security;
 
 namespace SeeSharpBackend.Controllers
 {
@@ -13,21 +15,34 @@ namespace SeeSharpBackend.Controllers
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly ILogger<AIController> _logger;
+        private readonly IBaiduControlGeneratorService _baiduService;
+        private readonly ISecureApiKeyService _secureApiKeyService;
 
-        public AIController(IConfiguration configuration, IHttpClientFactory httpClientFactory, ILogger<AIController> logger)
+        public AIController(
+            IConfiguration configuration, 
+            IHttpClientFactory httpClientFactory, 
+            ILogger<AIController> logger,
+            IBaiduControlGeneratorService baiduService,
+            ISecureApiKeyService secureApiKeyService)
         {
             _configuration = configuration;
             _httpClient = httpClientFactory.CreateClient();
             _logger = logger;
+            _baiduService = baiduService;
+            _secureApiKeyService = secureApiKeyService;
         }
 
         [HttpGet("status")]
-        public IActionResult GetStatus()
+        public async Task<IActionResult> GetStatus()
         {
-            var apiKey = _configuration["VolcesDeepseek:ApiKey"];
-            var hasApiKey = !string.IsNullOrEmpty(apiKey);
+            var deepseekKey = _configuration["VolcesDeepseek:ApiKey"];
+            var baiduKeyStatus = await _secureApiKeyService.ValidateApiKeyAsync("Baidu");
             
-            return Ok(new { hasApiKey });
+            return Ok(new { 
+                hasDeepseekKey = !string.IsNullOrEmpty(deepseekKey),
+                hasBaiduKey = baiduKeyStatus,
+                preferredModel = DeterminePreferredModel()
+            });
         }
 
         [HttpPost("generate-control")]
@@ -35,23 +50,157 @@ namespace SeeSharpBackend.Controllers
         {
             try
             {
-                // 获取火山DeepSeek API配置
-                var apiKey = _configuration["VolcesDeepseek:ApiKey"];
-                var apiUrl = _configuration["VolcesDeepseek:Url"] ?? "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+                _logger.LogInformation("收到控件生成请求: {Description}", request.Description);
 
-                // 如果有API密钥，使用火山DeepSeek API
-                if (!string.IsNullOrEmpty(apiKey))
+                // 智能选择AI模型
+                var modelSelection = await SelectOptimalModel(request.Description);
+                _logger.LogInformation("选择模型策略: {Model}", modelSelection.Model);
+
+                switch (modelSelection.Model)
                 {
-                    return await GenerateWithVolcesDeepseekAPI(request, apiKey, apiUrl);
-                }
+                    case "baidu":
+                        // 优先使用百度AI（特别是中文描述）
+                        var baiduResult = await GenerateWithBaiduAI(request);
+                        if (baiduResult != null)
+                        {
+                            return baiduResult;
+                        }
+                        _logger.LogWarning("百度AI生成失败，尝试备用方案");
+                        goto case "deepseek"; // 失败时降级到DeepSeek
 
-                // 否则使用预定义模板
-                return GenerateWithTemplate(request);
+                    case "deepseek":
+                        // 使用DeepSeek API
+                        var deepseekKey = _configuration["VolcesDeepseek:ApiKey"];
+                        if (!string.IsNullOrEmpty(deepseekKey))
+                        {
+                            var deepseekResult = await GenerateWithVolcesDeepseekAPI(
+                                request, 
+                                deepseekKey, 
+                                _configuration["VolcesDeepseek:Url"] ?? "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
+                            );
+                            if (deepseekResult != null)
+                            {
+                                return deepseekResult;
+                            }
+                        }
+                        goto case "template"; // 失败时降级到模板
+
+                    case "template":
+                    default:
+                        // 使用预定义模板（最后的备选）
+                        return GenerateWithTemplate(request);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "生成控件时发生错误");
                 return StatusCode(500, new { success = false, error = "服务器内部错误" });
+            }
+        }
+
+        /// <summary>
+        /// 使用百度AI生成控件
+        /// </summary>
+        private async Task<IActionResult?> GenerateWithBaiduAI(GenerateControlRequest request)
+        {
+            try
+            {
+                // 检查百度AI是否可用
+                var hasBaiduKey = await _secureApiKeyService.ValidateApiKeyAsync("Baidu");
+                if (!hasBaiduKey)
+                {
+                    _logger.LogWarning("百度AI密钥未配置或无效");
+                    return null;
+                }
+
+                // 调用百度AI服务生成控件
+                var result = await _baiduService.GenerateVueComponentAsync(request.Description);
+                
+                if (result.Success && !string.IsNullOrEmpty(result.Code))
+                {
+                    _logger.LogInformation("百度AI成功生成控件，模型: {Model}", result.Model);
+                    
+                    return Ok(new
+                    {
+                        success = true,
+                        code = result.Code,
+                        source = "baidu-ai",
+                        model = result.Model,
+                        controlType = result.ControlType,
+                        message = "控件生成成功"
+                    });
+                }
+
+                _logger.LogWarning("百度AI生成控件失败: {Error}", result.Error);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "调用百度AI服务失败");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 智能选择最优模型
+        /// </summary>
+        private async Task<ModelSelection> SelectOptimalModel(string description)
+        {
+            // 检查可用的API
+            var hasBaiduKey = await _secureApiKeyService.ValidateApiKeyAsync("Baidu");
+            var hasDeepseekKey = !string.IsNullOrEmpty(_configuration["VolcesDeepseek:ApiKey"]);
+
+            // 判断描述语言
+            var isChinese = _baiduService.IsChineseDescription(description);
+            
+            // 智能选择策略
+            if (isChinese && hasBaiduKey)
+            {
+                // 中文描述优先使用百度AI
+                return new ModelSelection { Model = "baidu", Reason = "中文描述，百度AI理解更准确" };
+            }
+            else if (hasDeepseekKey)
+            {
+                // 英文或没有百度密钥时使用DeepSeek
+                return new ModelSelection { Model = "deepseek", Reason = "DeepSeek API可用" };
+            }
+            else if (hasBaiduKey)
+            {
+                // 只有百度AI可用
+                return new ModelSelection { Model = "baidu", Reason = "仅百度AI可用" };
+            }
+            else
+            {
+                // 都不可用，使用模板
+                return new ModelSelection { Model = "template", Reason = "无可用AI服务，使用本地模板" };
+            }
+        }
+
+        /// <summary>
+        /// 确定优先模型
+        /// </summary>
+        private string DeterminePreferredModel()
+        {
+            // 这个方法用于状态接口
+            var hasBaiduKey = Task.Run(async () => 
+                await _secureApiKeyService.ValidateApiKeyAsync("Baidu")).Result;
+            var hasDeepseekKey = !string.IsNullOrEmpty(_configuration["VolcesDeepseek:ApiKey"]);
+
+            if (hasBaiduKey && hasDeepseekKey)
+            {
+                return "multi-model";
+            }
+            else if (hasBaiduKey)
+            {
+                return "baidu";
+            }
+            else if (hasDeepseekKey)
+            {
+                return "deepseek";
+            }
+            else
+            {
+                return "template";
             }
         }
 
@@ -890,6 +1039,12 @@ const emergencyStop = () => {
     public class GenerateControlRequest
     {
         public string Description { get; set; } = string.Empty;
+    }
+
+    public class ModelSelection
+    {
+        public string Model { get; set; } = string.Empty;
+        public string Reason { get; set; } = string.Empty;
     }
 
     public class ClaudeResponse

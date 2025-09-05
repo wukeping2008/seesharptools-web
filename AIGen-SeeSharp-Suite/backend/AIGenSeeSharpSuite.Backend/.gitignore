@@ -1,0 +1,33 @@
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio
+.vs/
+
+# .NET
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Local settings - NEVER commit these!
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+!appsettings.json
+
+# Secrets
+secrets.json
+*.key
+*.pfx

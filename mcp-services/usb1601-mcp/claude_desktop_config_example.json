@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "usb1601": {
+      "command": "D:\\Documents\\seesharptools-web\\mcp-services\\usb1601-mcp\\publish\\USB1601MCP.exe"
+    }
+  }
+}

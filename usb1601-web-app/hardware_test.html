@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USB-1601 硬件检测与测试</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f7f8fa;
+            border-radius: 10px;
+            border: 1px solid #e4e7ed;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #303133;
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #409EFF;
+            margin-right: 10px;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .status-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dcdfe6;
+        }
+        .status-label {
+            font-size: 12px;
+            color: #909399;
+            margin-bottom: 5px;
+        }
+        .status-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #303133;
+        }
+        .status-value.success { color: #67c23a; }
+        .status-value.error { color: #f56c6c; }
+        .status-value.warning { color: #e6a23c; }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #409EFF;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        button:hover {
+            background: #66b1ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+        }
+        button:disabled {
+            background: #c0c4cc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button.success { background: #67c23a; }
+        button.success:hover { background: #85ce61; }
+        button.warning { background: #e6a23c; }
+        button.warning:hover { background: #ebb563; }
+        button.danger { background: #f56c6c; }
+        button.danger:hover { background: #f78989; }
+        .log-container {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 10px;
+            border-left: 3px solid #409EFF;
+        }
+        .log-entry.success { border-left-color: #67c23a; color: #67c23a; }
+        .log-entry.error { border-left-color: #f56c6c; color: #f56c6c; }
+        .log-entry.warning { border-left-color: #e6a23c; color: #e6a23c; }
+        .log-entry.info { border-left-color: #909399; color: #909399; }
+        .mode-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #dcdfe6;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #409EFF;
+        }
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #409EFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔌 USB-1601 硬件检测与测试</h1>
+            <p>实时硬件状态监控与数据采集测试</p>
+        </div>
+
+        <div class="content">
+            <!-- 状态面板 -->
+            <div class="section">
+                <div class="section-title">系统状态</div>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <div class="status-label">连接状态</div>
+                        <div class="status-value" id="connectionStatus">未连接</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">运行模式</div>
+                        <div class="status-value" id="modeStatus">未知</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">硬件状态</div>
+                        <div class="status-value" id="hardwareStatus">未检测</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">采集状态</div>
+                        <div class="status-value" id="acquisitionStatus">已停止</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 硬件检测 -->
+            <div class="section">
+                <div class="section-title">硬件检测</div>
+                <div class="button-group">
+                    <button onclick="detectHardware()">
+                        🔍 检测硬件
+                    </button>
+                    <button onclick="initializeSystem(true)" class="success">
+                        🔧 初始化硬件模式
+                    </button>
+                    <button onclick="initializeSystem(false)" class="warning">
+                        💻 初始化模拟模式
+                    </button>
+                </div>
+                <div class="mode-switch">
+                    <span>模拟模式</span>
+                    <label class="switch">
+                        <input type="checkbox" id="modeSwitch" onchange="switchMode()">
+                        <span class="slider"></span>
+                    </label>
+                    <span>硬件模式</span>
+                </div>
+            </div>
+
+            <!-- 数据采集控制 -->
+            <div class="section">
+                <div class="section-title">数据采集控制</div>
+                <div class="button-group">
+                    <button onclick="startAcquisition()" class="success">
+                        ▶️ 开始采集
+                    </button>
+                    <button onclick="stopAcquisition()" class="danger">
+                        ⏹️ 停止采集
+                    </button>
+                    <button onclick="getStatus()">
+                        📊 获取状态
+                    </button>
+                    <button onclick="clearLog()">
+                        🗑️ 清空日志
+                    </button>
+                </div>
+            </div>
+
+            <!-- 日志输出 -->
+            <div class="section">
+                <div class="section-title">系统日志</div>
+                <div class="log-container" id="logContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api/hybriddata';
+        let isHardwareMode = false;
+        
+        function addLog(message, type = 'info') {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `[${time}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateStatus(field, value, className = '') {
+            const element = document.getElementById(field);
+            if (element) {
+                element.textContent = value;
+                element.className = `status-value ${className}`;
+            }
+        }
+
+        async function detectHardware() {
+            try {
+                addLog('正在检测USB-1601硬件...', 'info');
+                const response = await fetch(`${API_BASE}/detect-hardware`);
+                const data = await response.json();
+                
+                if (data.hardwareAvailable) {
+                    addLog(`✅ 检测到硬件: 设备索引=${data.deviceIndex}`, 'success');
+                    addLog(`驱动路径: ${data.driverPath}`, 'info');
+                    updateStatus('hardwareStatus', '已检测到', 'success');
+                } else {
+                    addLog(`⚠️ ${data.message}`, 'warning');
+                    if (data.recommendation) {
+                        addLog(`建议: ${data.recommendation}`, 'info');
+                    }
+                    updateStatus('hardwareStatus', '未检测到', 'warning');
+                }
+            } catch (error) {
+                addLog(`❌ 检测失败: ${error.message}`, 'error');
+                updateStatus('hardwareStatus', '检测失败', 'error');
+            }
+        }
+
+        async function initializeSystem(preferHardware) {
+            try {
+                addLog(`正在初始化系统 (${preferHardware ? '硬件优先' : '模拟模式'})...`, 'info');
+                
+                const response = await fetch(`${API_BASE}/initialize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preferHardware })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ ${data.message}`, 'success');
+                    updateStatus('connectionStatus', '已连接', 'success');
+                    updateStatus('modeStatus', data.mode === 'hardware' ? '硬件模式' : '模拟模式', 
+                        data.mode === 'hardware' ? 'success' : 'warning');
+                    
+                    isHardwareMode = data.mode === 'hardware';
+                    document.getElementById('modeSwitch').checked = isHardwareMode;
+                    
+                    if (data.hardwareError) {
+                        addLog(`硬件错误: ${data.hardwareError}`, 'warning');
+                    }
+                } else {
+                    addLog(`❌ 初始化失败: ${data.message}`, 'error');
+                    updateStatus('connectionStatus', '未连接', 'error');
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+                updateStatus('connectionStatus', '连接失败', 'error');
+            }
+        }
+
+        async function startAcquisition() {
+            try {
+                addLog('启动数据采集...', 'info');
+                
+                const config = {
+                    channelCount: 1,
+                    sampleRate: 1000,
+                    minVoltage: -10,
+                    maxVoltage: 10,
+                    selfTestMode: !isHardwareMode, // 模拟模式下自动开启自测
+                    signalType: 'Sine',
+                    signalFrequency: 100,
+                    signalAmplitude: 5
+                };
+                
+                const response = await fetch(`${API_BASE}/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ ${data.message}`, 'success');
+                    updateStatus('acquisitionStatus', '采集中', 'success');
+                    addLog(`模式: ${data.mode}, 采样率: ${config.sampleRate}Hz, 通道数: ${config.channelCount}`, 'info');
+                } else {
+                    addLog(`❌ 启动失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function stopAcquisition() {
+            try {
+                addLog('停止数据采集...', 'info');
+                
+                const response = await fetch(`${API_BASE}/stop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ ${data.message}`, 'success');
+                    updateStatus('acquisitionStatus', '已停止', 'warning');
+                } else {
+                    addLog(`❌ 停止失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function getStatus() {
+            try {
+                addLog('获取系统状态...', 'info');
+                
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                
+                addLog(`状态: 初始化=${data.isInitialized}, 采集中=${data.isAcquiring}, 模式=${data.mode}`, 'info');
+                
+                updateStatus('connectionStatus', data.isInitialized ? '已连接' : '未连接', 
+                    data.isInitialized ? 'success' : 'error');
+                updateStatus('modeStatus', data.mode === 'hardware' ? '硬件模式' : '模拟模式',
+                    data.mode === 'hardware' ? 'success' : 'warning');
+                updateStatus('hardwareStatus', data.hardwareAvailable ? '可用' : '不可用',
+                    data.hardwareAvailable ? 'success' : 'warning');
+                updateStatus('acquisitionStatus', data.isAcquiring ? '采集中' : '已停止',
+                    data.isAcquiring ? 'success' : 'warning');
+                
+                if (data.lastError) {
+                    addLog(`最后错误: ${data.lastError}`, 'warning');
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function switchMode() {
+            const useHardware = document.getElementById('modeSwitch').checked;
+            
+            try {
+                addLog(`切换到${useHardware ? '硬件' : '模拟'}模式...`, 'info');
+                
+                const response = await fetch(`${API_BASE}/switch-mode`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ useHardware })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ ${data.message}`, 'success');
+                    updateStatus('modeStatus', data.mode === 'hardware' ? '硬件模式' : '模拟模式',
+                        data.mode === 'hardware' ? 'success' : 'warning');
+                    isHardwareMode = data.mode === 'hardware';
+                } else {
+                    addLog(`❌ 切换失败: ${data.message}`, 'error');
+                    // 恢复开关状态
+                    document.getElementById('modeSwitch').checked = !useHardware;
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+                document.getElementById('modeSwitch').checked = !useHardware;
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+            addLog('日志已清空', 'info');
+        }
+
+        // 页面加载时
+        window.onload = () => {
+            addLog('🚀 USB-1601 硬件测试工具已就绪', 'success');
+            addLog('点击"检测硬件"开始测试', 'info');
+            getStatus();
+        };
+    </script>
+</body>
+</html>

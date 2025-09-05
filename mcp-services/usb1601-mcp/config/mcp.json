@@ -1,0 +1,66 @@
+{
+  "name": "usb1601-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for JYTEK USB-1601 Data Acquisition Device",
+  "protocol": "stdio",
+  "author": "SeeSharpTools Team",
+  "license": "MIT",
+  "capabilities": {
+    "tools": true,
+    "prompts": false,
+    "resources": false,
+    "sampling": false
+  },
+  "tools": [
+    {
+      "name": "usb1601_discover",
+      "description": "Discover all connected USB-1601 devices",
+      "category": "device"
+    },
+    {
+      "name": "usb1601_connect",
+      "description": "Connect to a USB-1601 device",
+      "category": "device"
+    },
+    {
+      "name": "usb1601_disconnect",
+      "description": "Disconnect from USB-1601 device",
+      "category": "device"
+    },
+    {
+      "name": "ai_read_single",
+      "description": "Read single analog input value",
+      "category": "analog"
+    },
+    {
+      "name": "ai_read_multiple",
+      "description": "Read multiple analog input channels",
+      "category": "analog"
+    },
+    {
+      "name": "ao_write_single",
+      "description": "Write single analog output value",
+      "category": "analog"
+    },
+    {
+      "name": "dio_read",
+      "description": "Read digital input port",
+      "category": "digital"
+    },
+    {
+      "name": "dio_write",
+      "description": "Write digital output port",
+      "category": "digital"
+    },
+    {
+      "name": "stream_start",
+      "description": "Start continuous data streaming",
+      "category": "stream"
+    },
+    {
+      "name": "stream_stop",
+      "description": "Stop data streaming",
+      "category": "stream"
+    }
+  ]
+}

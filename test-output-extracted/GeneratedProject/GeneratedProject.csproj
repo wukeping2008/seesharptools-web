@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <!-- Standard .NET packages that might be needed -->
+  <ItemGroup>
+    <PackageReference Include="System.Windows.Forms" Version="*" Condition="Exists('Program.cs') AND $([System.IO.File]::ReadAllText('Program.cs').Contains('System.Windows.Forms'))" />
+  </ItemGroup>
+
+  <!-- JYUSB1601 reference for JYTEK device programming -->
+  <!-- Note: You may need to adjust the HintPath based on your JYUSB1601.dll location -->
+  <!-- The DLL is typically installed with the JYUSB1601 driver package -->
+  <!--
+  <ItemGroup>
+    <Reference Include="JYUSB1601">
+      <HintPath>C:\Program Files\JYTEK\JYUSB1601\lib\JYUSB1601.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  -->
+  
+  <!-- Alternative: If you have the DLL in a local lib folder -->
+  <!--
+  <ItemGroup>
+    <Reference Include="JYUSB1601">
+      <HintPath>lib\JYUSB1601.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  -->
+
+</Project>

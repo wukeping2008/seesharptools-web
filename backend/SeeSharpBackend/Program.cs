@@ -7,6 +7,7 @@ using SeeSharpBackend.Services.DataStorage;
 using SeeSharpBackend.Services.Monitoring;
 using SeeSharpBackend.Services.CSharpRunner;
 using SeeSharpBackend.Services;
+using SeeSharpBackend.Services.Security;
 using SeeSharpBackend.Hubs;
 using Serilog;
 using System.Reflection;
@@ -104,6 +105,10 @@ builder.Services.AddSignalR(options =>
     options.MaximumParallelInvocationsPerClient = 2;
 });
 
+// 注册安全服务
+builder.Services.AddDataProtection();
+builder.Services.AddSingleton<ISecureApiKeyService, SecureApiKeyService>();
+
 // 注册驱动管理器
 builder.Services.Configure<DriverManagerOptions>(options =>
 {
@@ -129,6 +134,9 @@ builder.Services.AddSingleton<IConnectionManager, ConnectionManager>();
 builder.Services.AddScoped<SeeSharpBackend.Services.DataAcquisition.IDataAcquisitionEngine, SeeSharpBackend.Services.DataAcquisition.USB1601DataAcquisitionEngine>();
 builder.Services.AddScoped<SeeSharpBackend.Services.DataAcquisition.USB1601DataAcquisitionEngine>();
 
+// 注册USB1601硬件服务 - 统一的硬件抽象层
+builder.Services.AddSingleton<SeeSharpBackend.Services.Hardware.IUSB1601Hardware, SeeSharpBackend.Services.Hardware.USB1601HardwareService>();
+
 // 注册数据存储服务
 builder.Services.Configure<DataStorageOptions>(builder.Configuration.GetSection("DataStorage"));
 builder.Services.AddSingleton<IDataStorageService, DataStorageService>();
@@ -144,6 +152,8 @@ builder.Services.AddHttpClient<ICSharpRunnerService, CSharpRunnerService>();
 builder.Services.AddScoped<SeeSharpBackend.Services.AI.INaturalLanguageProcessor, SeeSharpBackend.Services.AI.NaturalLanguageProcessor>();
 builder.Services.AddScoped<SeeSharpBackend.Services.AI.ISmartCodeGenerator, SeeSharpBackend.Services.AI.SmartCodeGenerator>();
 builder.Services.AddScoped<SeeSharpBackend.Services.AI.ITemplateRepository, SeeSharpBackend.Services.AI.TemplateRepository>();
+builder.Services.AddScoped<IBaiduControlGeneratorService, BaiduControlGeneratorService>();
+builder.Services.AddScoped<IBaiduSolutionGeneratorService, BaiduSolutionGeneratorService>();
 
 // 配置AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USB-1601 优化测试 - 无屏闪版本</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 {
+            color: #303133;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .control-group {
+            padding: 20px;
+            background: #f7f8fa;
+            border-radius: 8px;
+            border: 1px solid #e4e7ed;
+        }
+        .control-group h3 {
+            color: #606266;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .control-item {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .control-item label {
+            color: #909399;
+            font-size: 14px;
+        }
+        .control-item input,
+        .control-item select {
+            padding: 5px 10px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 120px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            background: #409EFF;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        button:hover {
+            background: #66b1ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+        }
+        button:disabled {
+            background: #c0c4cc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button.success { background: #67c23a; }
+        button.danger { background: #f56c6c; }
+        button.warning { background: #e6a23c; }
+        
+        .canvas-container {
+            position: relative;
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        #waveformCanvas {
+            background: #0a0a0a;
+            border-radius: 4px;
+            width: 100%;
+            height: 400px;
+            display: block;
+        }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-item {
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border: 1px solid #409EFF;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #909399;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #303133;
+        }
+        .stat-value.success { color: #67c23a; }
+        .stat-value.warning { color: #e6a23c; }
+        .stat-value.error { color: #f56c6c; }
+        
+        .performance-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #67c23a;
+            font-family: monospace;
+            font-size: 12px;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        /* 使用CSS硬件加速 */
+        #waveformCanvas {
+            transform: translateZ(0);
+            will-change: transform;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            📊 USB-1601 优化测试
+            <span style="font-size: 14px; color: #909399;">（无屏闪版本）</span>
+        </h1>
+
+        <div class="control-panel">
+            <div class="control-group">
+                <h3>📡 连接控制</h3>
+                <button onclick="initialize()" class="success">初始化系统</button>
+                <button onclick="detectHardware()">检测硬件</button>
+            </div>
+
+            <div class="control-group">
+                <h3>⚙️ 采集参数</h3>
+                <div class="control-item">
+                    <label>采样率:</label>
+                    <select id="sampleRate">
+                        <option value="1000">1 kHz</option>
+                        <option value="5000">5 kHz</option>
+                        <option value="10000">10 kHz</option>
+                        <option value="50000">50 kHz</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label>通道数:</label>
+                    <select id="channelCount">
+                        <option value="1">1通道</option>
+                        <option value="2">2通道</option>
+                        <option value="4">4通道</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label>更新间隔(ms):</label>
+                    <input type="number" id="updateInterval" value="50" min="10" max="1000">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>📈 信号参数</h3>
+                <div class="control-item">
+                    <label>信号类型:</label>
+                    <select id="signalType">
+                        <option value="Sine">正弦波</option>
+                        <option value="Square">方波</option>
+                        <option value="Triangle">三角波</option>
+                        <option value="Sawtooth">锯齿波</option>
+                    </select>
+                </div>
+                <div class="control-item">
+                    <label>频率(Hz):</label>
+                    <input type="number" id="frequency" value="100" min="1" max="10000">
+                </div>
+                <div class="control-item">
+                    <label>幅度(V):</label>
+                    <input type="number" id="amplitude" value="5" min="0.1" max="10" step="0.1">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>🎮 采集控制</h3>
+                <button onclick="startAcquisition()" class="success">▶️ 开始采集</button>
+                <button onclick="stopAcquisition()" class="danger">⏹️ 停止采集</button>
+                <button onclick="clearCanvas()" class="warning">🗑️ 清除波形</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="waveformCanvas"></canvas>
+            <div class="performance-info" id="perfInfo">
+                FPS: <span id="fps">0</span> | 
+                数据点: <span id="dataPoints">0</span> | 
+                延迟: <span id="latency">0</span>ms
+            </div>
+        </div>
+
+        <div class="stats-panel">
+            <div class="stat-item">
+                <div class="stat-label">最大值</div>
+                <div class="stat-value" id="maxValue">0.00 V</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">最小值</div>
+                <div class="stat-value" id="minValue">0.00 V</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">平均值</div>
+                <div class="stat-value" id="avgValue">0.00 V</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">峰峰值</div>
+                <div class="stat-value" id="ppValue">0.00 V</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">采集状态</div>
+                <div class="stat-value" id="status">已停止</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">运行模式</div>
+                <div class="stat-value" id="mode">未知</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api/hybriddata';
+        
+        // Canvas绘图相关
+        const canvas = document.getElementById('waveformCanvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        let dataBuffer = [];
+        let maxBufferSize = 2000;
+        let animationId = null;
+        let lastFrameTime = Date.now();
+        let fps = 0;
+        let frameCount = 0;
+        let isAcquiring = false;
+        
+        // 设置Canvas大小
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        
+        // 优化的绘制函数
+        function drawWaveform() {
+            if (!isAcquiring) return;
+            
+            // 计算FPS
+            const now = Date.now();
+            const deltaTime = now - lastFrameTime;
+            frameCount++;
+            
+            if (deltaTime >= 1000) {
+                fps = Math.round((frameCount * 1000) / deltaTime);
+                document.getElementById('fps').textContent = fps;
+                frameCount = 0;
+                lastFrameTime = now;
+            }
+            
+            // 清除画布（使用黑色背景）
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (dataBuffer.length < 2) {
+                animationId = requestAnimationFrame(drawWaveform);
+                return;
+            }
+            
+            // 绘制网格
+            drawGrid();
+            
+            // 绘制波形
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            
+            const xStep = canvas.width / maxBufferSize;
+            const yMid = canvas.height / 2;
+            const yScale = canvas.height / 20; // ±10V范围
+            
+            // 使用降采样绘制
+            const step = Math.max(1, Math.floor(dataBuffer.length / canvas.width));
+            
+            for (let i = 0; i < dataBuffer.length; i += step) {
+                const x = (i / dataBuffer.length) * canvas.width;
+                const y = yMid - (dataBuffer[i] * yScale);
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // 更新统计信息
+            updateStats();
+            
+            // 请求下一帧
+            animationId = requestAnimationFrame(drawWaveform);
+        }
+        
+        // 绘制网格
+        function drawGrid() {
+            ctx.strokeStyle = 'rgba(64, 158, 255, 0.2)';
+            ctx.lineWidth = 0.5;
+            
+            // 横线
+            for (let i = 0; i <= 10; i++) {
+                const y = (canvas.height / 10) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // 竖线
+            for (let i = 0; i <= 20; i++) {
+                const x = (canvas.width / 20) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            if (dataBuffer.length === 0) return;
+            
+            const max = Math.max(...dataBuffer);
+            const min = Math.min(...dataBuffer);
+            const avg = dataBuffer.reduce((a, b) => a + b, 0) / dataBuffer.length;
+            const pp = max - min;
+            
+            document.getElementById('maxValue').textContent = max.toFixed(2) + ' V';
+            document.getElementById('minValue').textContent = min.toFixed(2) + ' V';
+            document.getElementById('avgValue').textContent = avg.toFixed(2) + ' V';
+            document.getElementById('ppValue').textContent = pp.toFixed(2) + ' V';
+            document.getElementById('dataPoints').textContent = dataBuffer.length;
+        }
+        
+        // WebSocket连接
+        let ws = null;
+        
+        function connectWebSocket() {
+            // 简化的WebSocket连接（实际应用中使用SignalR）
+            console.log('WebSocket连接功能需要SignalR支持');
+        }
+        
+        // 模拟数据接收（用于测试）
+        function simulateDataReception() {
+            const updateInterval = parseInt(document.getElementById('updateInterval').value);
+            
+            setInterval(() => {
+                if (!isAcquiring) return;
+                
+                // 生成模拟数据
+                const newData = [];
+                const time = Date.now() / 1000;
+                const freq = parseFloat(document.getElementById('frequency').value);
+                const amp = parseFloat(document.getElementById('amplitude').value);
+                const type = document.getElementById('signalType').value;
+                
+                for (let i = 0; i < 100; i++) {
+                    let value = 0;
+                    const t = time + i * 0.001;
+                    
+                    switch(type) {
+                        case 'Sine':
+                            value = amp * Math.sin(2 * Math.PI * freq * t);
+                            break;
+                        case 'Square':
+                            value = amp * (Math.sin(2 * Math.PI * freq * t) > 0 ? 1 : -1);
+                            break;
+                        case 'Triangle':
+                            const period = 1 / freq;
+                            const phase = (t % period) / period;
+                            value = amp * (4 * Math.abs(phase - 0.5) - 1);
+                            break;
+                        case 'Sawtooth':
+                            const sawPeriod = 1 / freq;
+                            const sawPhase = (t % sawPeriod) / sawPeriod;
+                            value = amp * (2 * sawPhase - 1);
+                            break;
+                    }
+                    
+                    // 添加噪声
+                    value += (Math.random() - 0.5) * 0.1;
+                    newData.push(value);
+                }
+                
+                // 添加到缓冲区
+                dataBuffer.push(...newData);
+                
+                // 限制缓冲区大小
+                if (dataBuffer.length > maxBufferSize) {
+                    dataBuffer = dataBuffer.slice(-maxBufferSize);
+                }
+                
+                // 更新延迟显示
+                document.getElementById('latency').textContent = updateInterval;
+            }, updateInterval);
+        }
+        
+        // API调用函数
+        async function initialize() {
+            try {
+                const response = await fetch(`${API_BASE}/initialize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preferHardware: false })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('初始化成功: ' + data.message);
+                    document.getElementById('mode').textContent = data.mode;
+                    document.getElementById('mode').className = 'stat-value ' + 
+                        (data.mode === 'hardware' ? 'success' : 'warning');
+                }
+            } catch (error) {
+                alert('初始化失败: ' + error.message);
+            }
+        }
+        
+        async function detectHardware() {
+            try {
+                const response = await fetch(`${API_BASE}/detect-hardware`);
+                const data = await response.json();
+                
+                alert(data.hardwareAvailable ? 
+                    `检测到硬件: 设备索引=${data.deviceIndex}` : 
+                    `未检测到硬件: ${data.message}`);
+            } catch (error) {
+                alert('检测失败: ' + error.message);
+            }
+        }
+        
+        async function startAcquisition() {
+            if (isAcquiring) return;
+            
+            try {
+                const config = {
+                    channelCount: parseInt(document.getElementById('channelCount').value),
+                    sampleRate: parseInt(document.getElementById('sampleRate').value),
+                    signalType: document.getElementById('signalType').value,
+                    signalFrequency: parseFloat(document.getElementById('frequency').value),
+                    signalAmplitude: parseFloat(document.getElementById('amplitude').value),
+                    minVoltage: -10,
+                    maxVoltage: 10
+                };
+                
+                const response = await fetch(`${API_BASE}/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    isAcquiring = true;
+                    document.getElementById('status').textContent = '采集中';
+                    document.getElementById('status').className = 'stat-value success';
+                    
+                    // 启动绘制循环
+                    drawWaveform();
+                    
+                    // 启动模拟数据（实际应用中通过WebSocket接收）
+                    simulateDataReception();
+                }
+            } catch (error) {
+                alert('启动失败: ' + error.message);
+            }
+        }
+        
+        async function stopAcquisition() {
+            if (!isAcquiring) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/stop`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    isAcquiring = false;
+                    document.getElementById('status').textContent = '已停止';
+                    document.getElementById('status').className = 'stat-value error';
+                    
+                    // 停止动画
+                    if (animationId) {
+                        cancelAnimationFrame(animationId);
+                        animationId = null;
+                    }
+                }
+            } catch (error) {
+                alert('停止失败: ' + error.message);
+            }
+        }
+        
+        function clearCanvas() {
+            dataBuffer = [];
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            updateStats();
+        }
+        
+        // 初始化
+        window.onload = () => {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        };
+    </script>
+</body>
+</html>

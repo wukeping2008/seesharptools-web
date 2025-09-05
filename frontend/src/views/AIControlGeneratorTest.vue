@@ -9,7 +9,14 @@
       :closable="false"
       show-icon
       style="margin-bottom: 20px"
-    />
+    >
+      <template #default>
+        <div v-if="modelStatus" style="margin-top: 8px; font-size: 12px;">
+          <div>🤖 可用模型：{{ availableModels }}</div>
+          <div>⚡ 当前策略：{{ modelStrategy }}</div>
+        </div>
+      </template>
+    </el-alert>
     
     <!-- 输入区域 -->
     <div class="input-section">
@@ -111,16 +118,55 @@ const error = ref('')
 const templates = ref<ControlTemplate[]>([])
 const previewType = ref('')
 const hasApiKey = ref(false)
+const modelStatus = ref<any>(null)
 
 // API状态计算属性
 const apiStatusMessage = computed(() => {
-  return hasApiKey.value 
-    ? '✅ 已配置Claude API，将使用真实AI生成控件' 
-    : '⚠️ 未配置Claude API，将使用预定义模板（查看文档了解如何配置）'
+  if (!modelStatus.value) {
+    return '⚠️ 正在检查AI服务状态...'
+  }
+  
+  const { hasDeepseekKey, hasBaiduKey, preferredModel } = modelStatus.value
+  
+  if (preferredModel === 'multi-model') {
+    return '✅ 多模型智能切换模式（百度AI + DeepSeek）'
+  } else if (hasBaiduKey) {
+    return '✅ 已配置百度AI，优先处理中文描述'
+  } else if (hasDeepseekKey) {
+    return '✅ 已配置DeepSeek API，将使用AI生成控件'
+  } else {
+    return '⚠️ 未配置AI服务，将使用预定义模板'
+  }
 })
 
 const apiStatusType = computed(() => {
-  return hasApiKey.value ? 'success' : 'warning'
+  if (!modelStatus.value) return 'warning'
+  const { preferredModel } = modelStatus.value
+  return preferredModel !== 'template' ? 'success' : 'warning'
+})
+
+const availableModels = computed(() => {
+  if (!modelStatus.value) return '检查中...'
+  const models = []
+  if (modelStatus.value.hasBaiduKey) models.push('百度文心')
+  if (modelStatus.value.hasDeepseekKey) models.push('DeepSeek')
+  if (models.length === 0) models.push('本地模板')
+  return models.join(' / ')
+})
+
+const modelStrategy = computed(() => {
+  if (!modelStatus.value) return '加载中...'
+  const { preferredModel } = modelStatus.value
+  switch (preferredModel) {
+    case 'multi-model':
+      return '中文用百度AI，英文用DeepSeek'
+    case 'baidu':
+      return '百度AI优先'
+    case 'deepseek':
+      return 'DeepSeek优先'
+    default:
+      return '使用本地模板库'
+  }
 })
 
 // 获取模板列表和检查API状态
@@ -130,7 +176,10 @@ onMounted(async () => {
   // 检查API是否可用
   try {
     const response = await backendApi.get('/api/ai/status').catch(() => null)
-    hasApiKey.value = response?.hasApiKey || false
+    if (response) {
+      modelStatus.value = response
+      hasApiKey.value = response.hasDeepseekKey || response.hasBaiduKey || false
+    }
   } catch {
     hasApiKey.value = false
   }
@@ -171,7 +220,17 @@ const generateControl = async () => {
         previewType.value = 'gauge'
       }
       
-      ElMessage.success('控件生成成功！')
+      // 显示使用的AI模型信息
+      let successMessage = '控件生成成功！'
+      if (response.source === 'baidu-ai') {
+        successMessage = `✅ 使用百度AI（${response.model || '文心一言'}）生成成功！`
+      } else if (response.source === 'deepseek-api') {
+        successMessage = '✅ 使用DeepSeek AI生成成功！'
+      } else if (response.source === 'template') {
+        successMessage = '📋 使用本地模板生成成功！'
+      }
+      
+      ElMessage.success(successMessage)
     } else {
       error.value = response.error || '生成失败'
     }

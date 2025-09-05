@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USB-1601 API测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #409EFF;
+            padding-bottom: 10px;
+        }
+        .button-group {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #409EFF;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #66b1ff;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            background: #f0f9ff;
+            border: 1px solid #409EFF;
+        }
+        .log {
+            background: #f4f4f5;
+            padding: 15px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #409EFF;
+            background: white;
+        }
+        .success { border-left-color: #67c23a; }
+        .error { border-left-color: #f56c6c; }
+        .warning { border-left-color: #e6a23c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 USB-1601 数据采集系统测试</h1>
+        
+        <div class="status">
+            <strong>系统状态：</strong>
+            <span id="systemStatus">未连接</span>
+        </div>
+
+        <div class="button-group">
+            <button onclick="testInitialize()">1. 初始化系统</button>
+            <button onclick="testStatus()">2. 检查状态</button>
+            <button onclick="testStart()">3. 开始采集（模拟）</button>
+            <button onclick="testStop()">4. 停止采集</button>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+
+        <h3>测试日志：</h3>
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api/simpledata';
+        
+        function addLog(message, type = 'info') {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `[${time}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateStatus(message, color = '#409EFF') {
+            const status = document.getElementById('systemStatus');
+            status.textContent = message;
+            status.style.color = color;
+        }
+
+        async function testInitialize() {
+            try {
+                addLog('正在初始化系统...', 'info');
+                const response = await fetch(`${API_BASE}/initialize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ 初始化成功: ${data.message}`, 'success');
+                    updateStatus(`已初始化 (${data.mode})`, '#67c23a');
+                } else {
+                    addLog(`❌ 初始化失败: ${data.message}`, 'error');
+                    updateStatus('初始化失败', '#f56c6c');
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+                updateStatus('连接失败', '#f56c6c');
+            }
+        }
+
+        async function testStatus() {
+            try {
+                addLog('检查系统状态...', 'info');
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                
+                addLog(`状态: 初始化=${data.isInitialized}, 采集中=${data.isAcquiring}, 模式=${data.mode}`, 'success');
+                
+                if (data.isAcquiring) {
+                    updateStatus('正在采集', '#67c23a');
+                } else if (data.isInitialized) {
+                    updateStatus('已就绪', '#409EFF');
+                } else {
+                    updateStatus('未初始化', '#e6a23c');
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStart() {
+            try {
+                addLog('启动数据采集（模拟模式）...', 'info');
+                const config = {
+                    channelCount: 1,
+                    sampleRate: 1000,
+                    minVoltage: -10,
+                    maxVoltage: 10,
+                    signalType: 'Sine',
+                    signalFrequency: 100,
+                    signalAmplitude: 5
+                };
+                
+                const response = await fetch(`${API_BASE}/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ 采集已启动: ${data.message}`, 'success');
+                    updateStatus('正在采集', '#67c23a');
+                    
+                    // 连接WebSocket接收数据
+                    connectWebSocket();
+                } else {
+                    addLog(`❌ 启动失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStop() {
+            try {
+                addLog('停止数据采集...', 'info');
+                const response = await fetch(`${API_BASE}/stop`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ 采集已停止: ${data.message}`, 'success');
+                    updateStatus('已停止', '#409EFF');
+                } else {
+                    addLog(`❌ 停止失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ 错误: ${error.message}`, 'error');
+            }
+        }
+
+        function connectWebSocket() {
+            // 这里可以添加SignalR连接代码
+            addLog('📡 WebSocket功能需要在实际应用中实现', 'warning');
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            addLog('日志已清空', 'info');
+        }
+
+        // 页面加载时自动检查状态
+        window.onload = () => {
+            addLog('🚀 USB-1601 API测试工具已就绪', 'success');
+            addLog('请按顺序点击上方按钮进行测试', 'info');
+        };
+    </script>
+</body>
+</html>

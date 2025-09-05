@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="JYUSB1601">
+      <HintPath>..\..\..\..\..\JYUSB-1601_V1.0.0_Examples\JYUSB-1601.Examples\lib\JYUSB1601.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

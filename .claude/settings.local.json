@@ -2,8 +2,31 @@
   "permissions": {
     "allow": [
       "Bash(rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cp:*)",
+      "Bash(npm install)",
+      "Bash(dotnet run:*)",
+      "Bash(npm run dev:*)",
+      "Bash(dotnet build)",
+      "Bash(curl:*)",
+      "Bash(npm install:*)",
+      "Bash(dotnet publish:*)",
+      "Bash(powershell:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(start AIGen-SeeSharp-Suite/test-api.html)",
+      "Bash(start http://localhost:5173)"
     ],
     "deny": []
+  },
+  "language": {
+    "locale": "zh-CN",
+    "display": "中文（简体）"
+  },
+  "ui": {
+    "theme": "dark",
+    "fontSize": "medium",
+    "showLineNumbers": true,
+    "wordWrap": true
   }
 }

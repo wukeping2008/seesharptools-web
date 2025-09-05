@@ -92,6 +92,43 @@
           </div>
         </el-card>
 
+        <!-- 模拟信号说明区 (仅模拟模式显示) -->
+        <el-card class="control-section" v-if="!useHardware">
+          <template #header>
+            <div class="section-header">
+              <el-icon><InfoFilled /></el-icon>
+              <span>模拟信号说明</span>
+            </div>
+          </template>
+          
+          <div class="simulation-info">
+            <el-alert
+              title="模拟模式下的信号生成规律"
+              type="info"
+              effect="light"
+              :closable="false"
+            >
+              <div class="signal-formula">
+                <p><strong>AI0:</strong> 1.0Hz 正弦波 + 噪声</p>
+                <p><strong>AI1:</strong> 1.5Hz 正弦波 + 噪声</p>
+                <p><strong>AI2:</strong> 2.0Hz 正弦波 + 噪声</p>
+                <p><strong>AI3:</strong> 2.5Hz 正弦波 + 噪声</p>
+                <p><strong>AI4-AI7:</strong> 类推递增...</p>
+              </div>
+            </el-alert>
+            
+            <div class="formula-display">
+              <p class="formula-title">生成公式：</p>
+              <code class="formula-code">
+                value = sin(2π × (1 + ch × 0.5) × t) × (0.5 + ch × 0.1) + noise
+              </code>
+              <p class="formula-note">
+                其中 ch = 通道号(0-7), t = 时间, noise = 随机噪声±0.025V
+              </p>
+            </div>
+          </div>
+        </el-card>
+
         <!-- 通道配置区 -->
         <el-card class="control-section">
           <template #header>
@@ -113,38 +150,24 @@
               </div>
               
               <div class="channel-controls" v-if="channel.enabled">
-                <div class="signal-type">
-                  <el-select v-model="channel.signalType" size="small" @change="updateSignal">
-                    <el-option label="正弦波" value="sine" />
-                    <el-option label="方波" value="square" />
-                    <el-option label="三角波" value="triangle" />
-                    <el-option label="锯齿波" value="sawtooth" />
-                    <el-option label="噪声" value="noise" />
-                  </el-select>
+                <div class="range-config">
+                  <div class="param-group">
+                    <label>输入量程:</label>
+                    <el-select v-model="channel.rangeMin" size="small" style="width: 70px">
+                      <el-option label="-10V" :value="-10" />
+                      <el-option label="-5V" :value="-5" />
+                      <el-option label="-1V" :value="-1" />
+                    </el-select>
+                    <span style="margin: 0 8px;">~</span>
+                    <el-select v-model="channel.rangeMax" size="small" style="width: 70px">
+                      <el-option label="+10V" :value="10" />
+                      <el-option label="+5V" :value="5" />
+                      <el-option label="+1V" :value="1" />
+                    </el-select>
+                  </div>
                 </div>
-                <div class="signal-params">
-                  <div class="param-group">
-                    <label>频率: {{ channel.frequency }}Hz</label>
-                    <el-slider 
-                      v-model="channel.frequency"
-                      :min="0.1" 
-                      :max="100" 
-                      :step="0.1"
-                      @change="updateSignal"
-                      size="small"
-                    />
-                  </div>
-                  <div class="param-group">
-                    <label>幅度: {{ channel.amplitude }}V</label>
-                    <el-slider 
-                      v-model="channel.amplitude"
-                      :min="0.1" 
-                      :max="10" 
-                      :step="0.1"
-                      @change="updateSignal"
-                      size="small"
-                    />
-                  </div>
+                <div class="channel-status">
+                  <span class="status-text">实时值: {{ getCurrentValue(channel).toFixed(3) }}V</span>
                 </div>
               </div>
             </div>
@@ -209,26 +232,94 @@
                     <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e5e7eb" stroke-width="1"/>
                   </pattern>
                 </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
+                <rect x="60" y="20" width="700" height="320" fill="url(#grid)" />
                 
-                <!-- 波形 -->
-                <g v-for="(channel, index) in enabledChannels" :key="channel.id">
-                  <path 
-                    :d="generateWaveform(channel, index)"
-                    fill="none" 
-                    :stroke="channel.color" 
-                    stroke-width="2"
+                <!-- Y轴 -->
+                <line x1="60" y1="20" x2="60" y2="340" stroke="#333" stroke-width="2"/>
+                <!-- X轴 -->
+                <line x1="60" y1="340" x2="760" y2="340" stroke="#333" stroke-width="2"/>
+                
+                <!-- Y轴刻度和标签 (电压) -->
+                <g v-for="i in 9" :key="`y-tick-${i}`">
+                  <line 
+                    :x1="55" 
+                    :x2="65" 
+                    :y1="20 + (i-1) * 40" 
+                    :y2="20 + (i-1) * 40" 
+                    stroke="#666" 
+                    stroke-width="1"
                   />
+                  <text 
+                    :x="50" 
+                    :y="20 + (i-1) * 40 + 4" 
+                    text-anchor="end" 
+                    font-size="10" 
+                    fill="#666"
+                  >
+                    {{ (10 - (i-1) * 2.5).toFixed(1) }}V
+                  </text>
                 </g>
                 
-                <!-- 数值显示 -->
-                <g v-for="(channel, index) in enabledChannels" :key="`value-${channel.id}`">
+                <!-- X轴刻度和标签 (时间) -->
+                <g v-for="i in 8" :key="`x-tick-${i}`">
+                  <line 
+                    :x1="60 + (i-1) * 100" 
+                    :x2="60 + (i-1) * 100" 
+                    :y1="335" 
+                    :y2="345" 
+                    stroke="#666" 
+                    stroke-width="1"
+                  />
                   <text 
-                    :x="20" 
-                    :y="30 + index * 20" 
+                    :x="60 + (i-1) * 100" 
+                    :y="358" 
+                    text-anchor="middle" 
+                    font-size="10" 
+                    fill="#666"
+                  >
+                    {{ ((i-1) * 1.43).toFixed(1) }}s
+                  </text>
+                </g>
+                
+                <!-- 坐标轴标题 -->
+                <text x="30" y="180" text-anchor="middle" font-size="12" fill="#333" transform="rotate(-90, 30, 180)">
+                  电压 (V)
+                </text>
+                <text x="410" y="385" text-anchor="middle" font-size="12" fill="#333">
+                  时间 (s)
+                </text>
+                
+                <!-- 波形（调整到坐标系内） -->
+                <g clip-path="url(#chartClip)">
+                  <defs>
+                    <clipPath id="chartClip">
+                      <rect x="60" y="20" width="700" height="320"/>
+                    </clipPath>
+                  </defs>
+                  <g v-for="(channel, index) in enabledChannels" :key="channel.id">
+                    <path 
+                      :d="generateWaveformWithAxes(channel, index)"
+                      fill="none" 
+                      :stroke="channel.color" 
+                      stroke-width="2"
+                    />
+                  </g>
+                </g>
+                
+                <!-- 通道图例 -->
+                <g v-for="(channel, index) in enabledChannels" :key="`legend-${channel.id}`">
+                  <rect 
+                    :x="580 + (index % 2) * 100" 
+                    :y="30 + Math.floor(index / 2) * 20" 
+                    width="12" 
+                    height="12" 
                     :fill="channel.color"
-                    font-size="14"
-                    font-weight="bold"
+                  />
+                  <text 
+                    :x="600 + (index % 2) * 100" 
+                    :y="30 + Math.floor(index / 2) * 20 + 9" 
+                    font-size="11" 
+                    fill="#333"
                   >
                     {{ channel.name }}: {{ getCurrentValue(channel).toFixed(2) }}V
                   </text>
@@ -266,22 +357,21 @@ import {
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 
-// 简化的通道接口
-interface SimpleChannel {
+// AI通道接口
+interface AIChannel {
   id: string
   name: string
   enabled: boolean
   color: string
-  signalType: 'sine' | 'square' | 'triangle' | 'sawtooth' | 'noise'
-  frequency: number
-  amplitude: number
-  phase: number
+  rangeMin: number
+  rangeMax: number
 }
 
 // 响应式数据
 const isRunning = ref(false)
 const sampleRate = ref(10000)
 const bufferSize = ref(1000)
+const samplesCount = ref(10000)  // 采样点数
 const totalPoints = ref(0)
 const runningTime = ref(0)
 const displayMode = ref('time')
@@ -290,13 +380,18 @@ const useHardware = ref(false)
 const modeSwitching = ref(false)
 const selfTestMode = ref(false)
 const currentTaskId = ref<number | null>(null)
+const realTimeData = ref<{[key: string]: number[]}>({})  // 存储实时数据
 
-// 简化的通道配置
-const channels = ref<SimpleChannel[]>([
-  { id: 'AI0', name: 'AI0', enabled: true, color: '#3B82F6', signalType: 'sine', frequency: 5, amplitude: 5, phase: 0 },
-  { id: 'AI1', name: 'AI1', enabled: true, color: '#EF4444', signalType: 'sine', frequency: 2, amplitude: 3, phase: Math.PI/2 },
-  { id: 'AI2', name: 'AI2', enabled: false, color: '#10B981', signalType: 'square', frequency: 1, amplitude: 4, phase: 0 },
-  { id: 'AI3', name: 'AI3', enabled: false, color: '#F59E0B', signalType: 'triangle', frequency: 3, amplitude: 2, phase: 0 }
+// AI通道配置 - 只关注通道选择和量程
+const channels = ref<AIChannel[]>([
+  { id: 'AI0', name: 'AI0', enabled: true, color: '#3B82F6', rangeMin: -10, rangeMax: 10 },
+  { id: 'AI1', name: 'AI1', enabled: true, color: '#EF4444', rangeMin: -10, rangeMax: 10 },
+  { id: 'AI2', name: 'AI2', enabled: false, color: '#10B981', rangeMin: -10, rangeMax: 10 },
+  { id: 'AI3', name: 'AI3', enabled: false, color: '#F59E0B', rangeMin: -10, rangeMax: 10 },
+  { id: 'AI4', name: 'AI4', enabled: false, color: '#8B5CF6', rangeMin: -10, rangeMax: 10 },
+  { id: 'AI5', name: 'AI5', enabled: false, color: '#F97316', rangeMin: -10, rangeMax: 10 },
+  { id: 'AI6', name: 'AI6', enabled: false, color: '#06B6D4', rangeMin: -10, rangeMax: 10 },
+  { id: 'AI7', name: 'AI7', enabled: false, color: '#84CC16', rangeMin: -10, rangeMax: 10 }
 ])
 
 let updateTimer: number | null = null
@@ -343,11 +438,18 @@ async function startAcquisition() {
             channelId: idx,
             name: ch.name,
             enabled: true,
-            rangeMin: -10,
-            rangeMax: 10
+            rangeMin: -10.0,
+            rangeMax: 10.0,
+            coupling: 'DC',
+            impedance: 'HighZ',
+            calibrationOffset: 0.0,
+            calibrationGain: 1.0
           })),
-          mode: 0, // Continuous
+          mode: 'Continuous',
           bufferSize: bufferSize.value,
+          threadPriority: 'AboveNormal',
+          enableCompression: true,
+          enableQualityCheck: true,
           selfTestMode: selfTestMode.value
         }
       }
@@ -454,8 +556,8 @@ function updateSignal() {
   // 信号参数已更新
 }
 
-// 波形生成函数
-function generateWaveform(channel: SimpleChannel, index: number): string {
+// 波形生成函数 - 根据硬件/模拟模式生成不同的数据
+function generateWaveform(channel: AIChannel, index: number): string {
   const points: string[] = []
   const centerY = 200 + index * 50
   const timeSpan = 10 // 10秒的时间跨度
@@ -465,27 +567,23 @@ function generateWaveform(channel: SimpleChannel, index: number): string {
     const t = (i / pointCount) * timeSpan + currentTime.value
     let value = 0
     
-    switch (channel.signalType) {
-      case 'sine':
-        value = Math.sin(2 * Math.PI * channel.frequency * t + channel.phase)
-        break
-      case 'square':
-        value = Math.sign(Math.sin(2 * Math.PI * channel.frequency * t + channel.phase))
-        break
-      case 'triangle':
-        const trianglePhase = (channel.frequency * t + channel.phase / (2 * Math.PI)) % 1
-        value = trianglePhase < 0.5 ? 4 * trianglePhase - 1 : 3 - 4 * trianglePhase
-        break
-      case 'sawtooth':
-        value = 2 * ((channel.frequency * t + channel.phase / (2 * Math.PI)) % 1) - 1
-        break
-      case 'noise':
-        value = (Math.random() - 0.5) * 2
-        break
+    if (useHardware.value) {
+      // 硬件模式：显示实际采集的数据或模拟硬件信号
+      // 这里可以从realTimeData中获取实际数据，目前先用模拟
+      value = Math.sin(2 * Math.PI * 1 * t) * 0.8 + Math.sin(2 * Math.PI * 5 * t) * 0.3 + (Math.random() - 0.5) * 0.1
+    } else {
+      // 模拟模式：生成不同通道的测试信号
+      const channelNum = parseInt(channel.id.replace('AI', ''))
+      const freq = 1 + channelNum * 0.5 // 不同通道不同频率
+      value = Math.sin(2 * Math.PI * freq * t) * (0.5 + channelNum * 0.1) + (Math.random() - 0.5) * 0.05
     }
     
+    // 限制到通道量程范围内
+    const range = channel.rangeMax - channel.rangeMin
+    value = Math.max(channel.rangeMin, Math.min(channel.rangeMax, value * range / 2))
+    
     const x = (i / pointCount) * 760 + 20
-    const y = centerY - value * channel.amplitude * 20
+    const y = centerY - (value / Math.max(Math.abs(channel.rangeMin), Math.abs(channel.rangeMax))) * 80
     
     points.push(i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`)
   }
@@ -493,30 +591,65 @@ function generateWaveform(channel: SimpleChannel, index: number): string {
   return points.join(' ')
 }
 
-function getCurrentValue(channel: SimpleChannel): number {
-  let value = 0
+function getCurrentValue(channel: AIChannel): number {
   const t = currentTime.value
+  let value = 0
   
-  switch (channel.signalType) {
-    case 'sine':
-      value = Math.sin(2 * Math.PI * channel.frequency * t + channel.phase)
-      break
-    case 'square':
-      value = Math.sign(Math.sin(2 * Math.PI * channel.frequency * t + channel.phase))
-      break
-    case 'triangle':
-      const trianglePhase = (channel.frequency * t + channel.phase / (2 * Math.PI)) % 1
-      value = trianglePhase < 0.5 ? 4 * trianglePhase - 1 : 3 - 4 * trianglePhase
-      break
-    case 'sawtooth':
-      value = 2 * ((channel.frequency * t + channel.phase / (2 * Math.PI)) % 1) - 1
-      break
-    case 'noise':
-      value = (Math.random() - 0.5) * 2
-      break
+  if (useHardware.value) {
+    // 硬件模式：返回实际采集值或模拟硬件信号
+    value = Math.sin(2 * Math.PI * 1 * t) * 0.8 + Math.sin(2 * Math.PI * 5 * t) * 0.3 + (Math.random() - 0.5) * 0.1
+  } else {
+    // 模拟模式：生成测试信号
+    const channelNum = parseInt(channel.id.replace('AI', ''))
+    const freq = 1 + channelNum * 0.5
+    value = Math.sin(2 * Math.PI * freq * t) * (0.5 + channelNum * 0.1) + (Math.random() - 0.5) * 0.05
   }
   
-  return value * channel.amplitude
+  // 限制到通道量程范围内
+  const range = channel.rangeMax - channel.rangeMin
+  return Math.max(channel.rangeMin, Math.min(channel.rangeMax, value * range / 2))
+}
+
+// 生成适配坐标轴的波形路径
+function generateWaveformWithAxes(channel: AIChannel, index: number): string {
+  const points: string[] = []
+  const timeSpan = 10 // 10秒的时间跨度
+  const pointCount = 200
+  
+  // 坐标系参数
+  const chartLeft = 60
+  const chartTop = 20
+  const chartWidth = 700
+  const chartHeight = 320
+  
+  for (let i = 0; i < pointCount; i++) {
+    const t = (i / pointCount) * timeSpan + currentTime.value
+    let value = 0
+    
+    if (useHardware.value) {
+      // 硬件模式：显示实际采集的数据或模拟硬件信号
+      value = Math.sin(2 * Math.PI * 1 * t) * 0.8 + Math.sin(2 * Math.PI * 5 * t) * 0.3 + (Math.random() - 0.5) * 0.1
+    } else {
+      // 模拟模式：生成不同通道的测试信号
+      const channelNum = parseInt(channel.id.replace('AI', ''))
+      const freq = 1 + channelNum * 0.5 // 不同通道不同频率
+      value = Math.sin(2 * Math.PI * freq * t) * (0.5 + channelNum * 0.1) + (Math.random() - 0.5) * 0.025
+    }
+    
+    // 限制到通道量程范围内
+    const range = channel.rangeMax - channel.rangeMin
+    value = Math.max(channel.rangeMin, Math.min(channel.rangeMax, value * range / 2))
+    
+    // 映射到图表坐标系
+    const x = chartLeft + (i / pointCount) * chartWidth
+    // Y轴范围：+10V到-10V映射到chartTop到chartTop+chartHeight
+    const normalizedValue = (value + 10) / 20  // 标准化到0-1
+    const y = chartTop + chartHeight - (normalizedValue * chartHeight)
+    
+    points.push(i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`)
+  }
+  
+  return points.join(' ')
 }
 
 // 图表控制
@@ -742,6 +875,89 @@ onMounted(() => {
   color: #666;
   margin-bottom: 4px;
   display: block;
+}
+
+.range-config {
+  margin-bottom: 12px;
+}
+
+.range-config .param-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.range-config label {
+  margin-bottom: 0;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.channel-status {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.status-text {
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 模拟信号说明区样式 */
+.simulation-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.signal-formula p {
+  margin: 4px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.signal-formula strong {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.formula-display {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  border-left: 4px solid #1890ff;
+}
+
+.formula-title {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.formula-code {
+  display: block;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #d73502;
+  margin-bottom: 8px;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.formula-note {
+  margin: 0;
+  font-size: 11px;
+  color: #666;
+  font-style: italic;
 }
 
 .statistics {

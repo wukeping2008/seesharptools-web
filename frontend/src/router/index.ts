@@ -18,6 +18,17 @@ const routes: Array<RouteRecordRaw> = [
     name: 'AITestPlatform',
     component: () => import('../views/AITestPlatform.vue')
   },
+  {
+    path: '/ai-model-manager',
+    name: 'AIModelManager',
+    component: () => import('../views/AIModelManager.vue')
+  },
+  // AI代码生成器
+  {
+    path: '/ai-solution-generator',
+    name: 'AISolutionGenerator',
+    component: () => import('../views/AISolutionGeneratorView.vue')
+  },
   // USB-1601 演示页面
   {
     path: '/usb1601-demo',

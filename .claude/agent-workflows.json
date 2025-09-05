@@ -1,0 +1,104 @@
+{
+  "agents": {
+    "frontend-agent": {
+      "description": "负责Vue组件开发、UI优化、前端测试",
+      "triggers": ["*.vue", "*.ts", "frontend/"],
+      "parallelTasks": [
+        "组件开发",
+        "样式优化", 
+        "TypeScript类型检查",
+        "单元测试编写"
+      ]
+    },
+    "backend-agent": {
+      "description": "负责API开发、数据库操作、服务层逻辑",
+      "triggers": ["*.cs", "backend/"],
+      "parallelTasks": [
+        "控制器开发",
+        "服务实现",
+        "数据模型设计",
+        "API测试"
+      ]
+    },
+    "hardware-agent": {
+      "description": "负责硬件驱动集成、数据采集优化",
+      "triggers": ["*Driver*.cs", "*Acquisition*.cs"],
+      "parallelTasks": [
+        "驱动适配",
+        "性能优化",
+        "错误处理",
+        "硬件测试"
+      ]
+    },
+    "test-agent": {
+      "description": "负责自动化测试、性能测试、集成测试",
+      "triggers": ["*Test*.cs", "*.spec.ts"],
+      "parallelTasks": [
+        "测试用例生成",
+        "测试执行",
+        "覆盖率分析",
+        "性能基准测试"
+      ]
+    }
+  },
+  "workflows": {
+    "feature-development": {
+      "description": "新功能开发工作流",
+      "steps": [
+        {
+          "name": "需求分析",
+          "agent": "general-purpose",
+          "tasks": ["分析需求", "设计方案", "创建任务列表"]
+        },
+        {
+          "name": "并行开发",
+          "parallel": true,
+          "agents": ["frontend-agent", "backend-agent"],
+          "tasks": ["实现功能", "编写测试", "代码审查"]
+        },
+        {
+          "name": "集成测试",
+          "agent": "test-agent",
+          "tasks": ["运行测试", "修复问题", "性能验证"]
+        }
+      ]
+    },
+    "bug-fix": {
+      "description": "Bug修复工作流",
+      "steps": [
+        {
+          "name": "问题定位",
+          "agent": "general-purpose",
+          "tasks": ["复现问题", "分析原因", "确定影响范围"]
+        },
+        {
+          "name": "修复实现",
+          "agent": "auto-select",
+          "tasks": ["修复代码", "添加测试", "验证修复"]
+        }
+      ]
+    },
+    "performance-optimization": {
+      "description": "性能优化工作流",
+      "steps": [
+        {
+          "name": "性能分析",
+          "parallel": true,
+          "agents": ["frontend-agent", "backend-agent", "hardware-agent"],
+          "tasks": ["识别瓶颈", "收集指标", "分析热点"]
+        },
+        {
+          "name": "优化实施",
+          "parallel": true,
+          "agents": ["auto-select"],
+          "tasks": ["优化代码", "缓存策略", "算法改进"]
+        },
+        {
+          "name": "验证效果",
+          "agent": "test-agent",
+          "tasks": ["性能测试", "对比分析", "生成报告"]
+        }
+      ]
+    }
+  }
+}

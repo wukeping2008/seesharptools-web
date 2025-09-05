@@ -113,7 +113,7 @@ namespace SeeSharpBackend.Services.Drivers
                         var aiTaskType = _driverAssembly?.GetType("JYUSB1601.JYUSB1601AITask");
                         if (aiTaskType != null)
                         {
-                            var aiTask = Activator.CreateInstance(aiTaskType, deviceIndex);
+                            var aiTask = Activator.CreateInstance(aiTaskType, deviceIndex.ToString());
                             if (aiTask != null)
                             {
                                 // 设备存在，创建设备定义
@@ -234,8 +234,8 @@ namespace SeeSharpBackend.Services.Drivers
                 var aiTaskType = _driverAssembly?.GetType("JYUSB1601.JYUSB1601AITask");
                 if (aiTaskType == null) return null;
 
-                // 创建AI任务实例
-                var aiTask = Activator.CreateInstance(aiTaskType, deviceIndex);
+                // 创建AI任务实例 (构造函数需要字符串参数)
+                var aiTask = Activator.CreateInstance(aiTaskType, deviceIndex.ToString());
                 if (aiTask == null) return null;
 
                 // 配置通道
@@ -280,7 +280,7 @@ namespace SeeSharpBackend.Services.Drivers
                 var aoTaskType = _driverAssembly?.GetType("JYUSB1601.JYUSB1601AOTask");
                 if (aoTaskType == null) return null;
 
-                var aoTask = Activator.CreateInstance(aoTaskType, deviceIndex);
+                var aoTask = Activator.CreateInstance(aoTaskType, deviceIndex.ToString());
                 if (aoTask == null) return null;
 
                 // 配置AO任务
