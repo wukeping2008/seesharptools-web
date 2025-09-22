@@ -421,11 +421,12 @@ aiTask.SampleRate = 1000;"
             var queryData = _mlContext.Data.LoadFromEnumerable(new[] { queryDoc });
             var transformedQueryData = _textTransformer.Transform(queryData);
             var queryVector = transformedQueryData.GetColumn<VBuffer<float>>("Features").First();
+            var queryDense = ToDenseArray(queryVector);
 
             var similarities = new List<(int index, float score)>();
             for (int i = 0; i < _knowledgeBaseVectors.Length; i++)
             {
-                var score = CalculateCosineSimilarity(queryVector.GetValues().ToArray(), _knowledgeBaseVectors[i].GetValues().ToArray());
+                var score = CalculateCosineSimilarity(queryDense, ToDenseArray(_knowledgeBaseVectors[i]));
                 similarities.Add((i, score));
             }
 
@@ -444,6 +445,13 @@ aiTask.SampleRate = 1000;"
                 .ToList();
                 
             return topResults;
+        }
+
+        private static float[] ToDenseArray(VBuffer<float> buffer)
+        {
+            var dense = new float[buffer.Length];
+            buffer.CopyTo(dense);
+            return dense;
         }
 
         private float CalculateCosineSimilarity(float[] vecA, float[] vecB)

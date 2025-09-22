@@ -1,0 +1,1 @@
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"request":["The request field is required."],"$.prompt":["The JSON value could not be converted to System.String. Path: $.prompt | LineNumber: 0 | BytePositionInLine: 41."]},"traceId":"00-69d0dbd73ea1761fbf8fa54ecb713aa9-8ae50d6c3d5c23ca-00"}

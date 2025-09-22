@@ -15,7 +15,9 @@
       "Bash(mkdir:*)",
       "Bash(dotnet restore:*)",
       "Bash(start AIGen-SeeSharp-Suite/test-api.html)",
-      "Bash(start http://localhost:5173)"
+      "Bash(start http://localhost:5173)",
+      "Bash(git push:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   },

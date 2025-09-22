@@ -1,0 +1,90 @@
+从 backend\SeeSharpBackend\Properties\launchSettings.json 使用启动设置...
+正在生成...
+[16:51:24 INF] 启动SeeSharpTools后端服务... {}
+[16:51:24 INF] 启动SeeSharpTools后端服务...
+[16:51:24 INF] User profile is available. Using 'C:\Users\wukep\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest. {"EventId": {"Id": 63, "Name": "UsingProfileAsKeyRepositoryWithDPAPI"}, "SourceContext": "Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager"}
+[16:51:24 INF] User profile is available. Using 'C:\Users\wukep\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+[16:51:24 INF] 开始初始化MISD服务... {"SourceContext": "MISDInitializationService"}
+[16:51:24 INF] 开始初始化MISD服务...
+[16:51:24 INF] 正在初始化MISD服务... {"SourceContext": "SeeSharpBackend.Services.MISD.MISDService"}
+[16:51:24 INF] 正在初始化MISD服务...
+[16:51:24 INF] 开始初始化驱动管理器... {"SourceContext": "SeeSharpBackend.Services.Drivers.DriverManager"}
+[16:51:24 INF] 开始初始化驱动管理器...
+[16:51:24 WRN] The WebRootPath was not found: D:\Documents\seesharptools-web\backend\SeeSharpBackend\wwwroot. Static files may be unavailable. {"EventId": {"Id": 16, "Name": "WebRootPathNotFound"}, "SourceContext": "Microsoft.AspNetCore.StaticFiles.StaticFileMiddleware"}
+[16:51:24 WRN] The WebRootPath was not found: D:\Documents\seesharptools-web\backend\SeeSharpBackend\wwwroot. Static files may be unavailable.
+[16:51:24 INF] 加载了 3 个驱动配置 {"SourceContext": "SeeSharpBackend.Services.Drivers.DriverManager"}
+[16:51:24 INF] 加载了 3 个驱动配置
+[16:51:24 INF] 正在初始化JY5500驱动: Drivers/JY5500.dll {"SourceContext": "SeeSharpBackend.Services.Drivers.JY5500DllDriverAdapter"}
+[16:51:24 INF] 正在初始化JY5500驱动: Drivers/JY5500.dll
+[16:51:24 ERR] JY5500驱动初始化失败 {"SourceContext": "SeeSharpBackend.Services.Drivers.JY5500DllDriverAdapter"}
+System.IO.FileNotFoundException: Could not load file or assembly 'D:\Documents\seesharptools-web\backend\SeeSharpBackend\Drivers\JY5500.dll'. 系统找不到指定的文件。
+File name: 'D:\Documents\seesharptools-web\backend\SeeSharpBackend\Drivers\JY5500.dll'
+   at System.Runtime.Loader.AssemblyLoadContext.LoadFromAssemblyPath(String assemblyPath)
+   at System.Reflection.Assembly.LoadFrom(String assemblyFile)
+   at SeeSharpBackend.Services.Drivers.JY5500DllDriverAdapter.InitializeAsync(DriverConfiguration config) in D:\Documents\seesharptools-web\backend\SeeSharpBackend\Services\Drivers\JY5500DllDriverAdapter.cs:line 39
+[16:51:24 ERR] JY5500驱动初始化失败
+System.IO.FileNotFoundException: Could not load file or assembly 'D:\Documents\seesharptools-web\backend\SeeSharpBackend\Drivers\JY5500.dll'. 系统找不到指定的文件。
+File name: 'D:\Documents\seesharptools-web\backend\SeeSharpBackend\Drivers\JY5500.dll'
+   at System.Runtime.Loader.AssemblyLoadContext.LoadFromAssemblyPath(String assemblyPath)
+   at System.Reflection.Assembly.LoadFrom(String assemblyFile)
+   at SeeSharpBackend.Services.Drivers.JY5500DllDriverAdapter.InitializeAsync(DriverConfiguration config) in D:\Documents\seesharptools-web\backend\SeeSharpBackend\Services\Drivers\JY5500DllDriverAdapter.cs:line 39
+[16:51:24 ERR] 驱动初始化失败: JY5500 {"SourceContext": "SeeSharpBackend.Services.Drivers.DriverManager"}
+[16:51:24 ERR] 驱动初始化失败: JY5500
+[16:51:24 INF] 正在初始化JYUSB1601驱动: Drivers/JYUSB1601.dll {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 INF] 正在初始化JYUSB1601驱动: Drivers/JYUSB1601.dll
+[16:51:24 INF] 成功加载JYUSB1601驱动程序集 {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 INF] 成功加载JYUSB1601驱动程序集
+[16:51:24 INF] JYUSB1601驱动初始化成功 {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 INF] JYUSB1601驱动初始化成功
+[16:51:24 INF] 驱动加载成功: JYUSB1601 (CSharpDll) {"SourceContext": "SeeSharpBackend.Services.Drivers.DriverManager"}
+[16:51:24 INF] 驱动加载成功: JYUSB1601 (CSharpDll)
+[16:51:24 INF] 初始化模拟驱动适配器 {"SourceContext": "SeeSharpBackend.Services.Drivers.MockDriverAdapter"}
+[16:51:24 INF] 初始化模拟驱动适配器
+[16:51:24 INF] 模拟驱动适配器初始化完成，创建了模拟USB-1601设备 {"SourceContext": "SeeSharpBackend.Services.Drivers.MockDriverAdapter"}
+[16:51:24 INF] 模拟驱动适配器初始化完成，创建了模拟USB-1601设备
+[16:51:24 INF] 驱动加载成功: MockDriver (CSharpDll) {"SourceContext": "SeeSharpBackend.Services.Drivers.DriverManager"}
+[16:51:24 INF] 驱动加载成功: MockDriver (CSharpDll)
+[16:51:24 INF] 驱动管理器初始化完成，已加载 2 个驱动 {"SourceContext": "SeeSharpBackend.Services.Drivers.DriverManager"}
+[16:51:24 INF] 驱动管理器初始化完成，已加载 2 个驱动
+[16:51:24 INF] 开始设备发现... {"SourceContext": "SeeSharpBackend.Services.MISD.MISDService"}
+[16:51:24 INF] 开始设备发现...
+[16:51:24 INF] 开始发现JYUSB1601设备 {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 INF] 开始发现JYUSB1601设备
+[16:51:24 DBG] 设备0上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation. {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 DBG] 设备0上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation.
+[16:51:24 WRN] Overriding address(es) 'http://0.0.0.0:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead. {"SourceContext": "Microsoft.AspNetCore.Server.Kestrel"}
+[16:51:24 WRN] Overriding address(es) 'http://0.0.0.0:5001'. Binding to endpoints defined via IConfiguration and/or UseKestrel() instead.
+[16:51:24 DBG] 设备1上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation. {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 DBG] 设备1上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation.
+[16:51:24 INF] Now listening on: http://0.0.0.0:5001 {"EventId": {"Id": 14, "Name": "ListeningOnAddress"}, "SourceContext": "Microsoft.Hosting.Lifetime"}
+[16:51:24 INF] Now listening on: http://0.0.0.0:5001
+[16:51:24 INF] Application started. Press Ctrl+C to shut down. {"SourceContext": "Microsoft.Hosting.Lifetime"}
+[16:51:24 INF] Application started. Press Ctrl+C to shut down.
+[16:51:24 INF] Hosting environment: Development {"SourceContext": "Microsoft.Hosting.Lifetime"}
+[16:51:24 INF] Hosting environment: Development
+[16:51:24 INF] Content root path: D:\Documents\seesharptools-web\backend\SeeSharpBackend {"SourceContext": "Microsoft.Hosting.Lifetime"}
+[16:51:24 INF] Content root path: D:\Documents\seesharptools-web\backend\SeeSharpBackend
+[16:51:24 DBG] 设备2上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation. {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 DBG] 设备2上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation.
+[16:51:24 DBG] 设备3上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation. {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 DBG] 设备3上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation.
+[16:51:24 DBG] 设备4上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation. {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 DBG] 设备4上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation.
+[16:51:24 DBG] 设备5上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation. {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 DBG] 设备5上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation.
+[16:51:24 DBG] 设备6上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation. {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 DBG] 设备6上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation.
+[16:51:24 DBG] 设备7上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation. {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 DBG] 设备7上未发现JYUSB1601设备: Exception has been thrown by the target of an invocation.
+[16:51:24 INF] JYUSB1601设备发现完成，共发现0个设备 {"SourceContext": "SeeSharpBackend.Services.Drivers.JYUSB1601DllDriverAdapter"}
+[16:51:24 INF] JYUSB1601设备发现完成，共发现0个设备
+[16:51:24 INF] 总共发现 1 个设备 {"SourceContext": "SeeSharpBackend.Services.Drivers.DriverManager"}
+[16:51:24 INF] 总共发现 1 个设备
+[16:51:24 INF] 设备发现完成，共发现 1 个设备 {"SourceContext": "SeeSharpBackend.Services.MISD.MISDService"}
+[16:51:24 INF] 设备发现完成，共发现 1 个设备
+[16:51:24 INF] 发现 1 个设备 {"SourceContext": "SeeSharpBackend.Services.MISD.MISDService"}
+[16:51:24 INF] 发现 1 个设备
+[16:51:24 INF] MISD服务初始化完成 {"SourceContext": "SeeSharpBackend.Services.MISD.MISDService"}
+[16:51:24 INF] MISD服务初始化完成
+[16:51:24 INF] MISD服务初始化完成 {"SourceContext": "MISDInitializationService"}
+[16:51:24 INF] MISD服务初始化完成

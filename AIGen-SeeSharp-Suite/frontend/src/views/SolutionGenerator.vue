@@ -168,7 +168,7 @@ const generateSolution = async () => {
   successMessage.value = '';
 
   try {
-    const response = await fetch('http://localhost:5100/api/generation/generate-solution', {
+    const response = await fetch('/api/generation/generate-solution', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

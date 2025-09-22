@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
+using System.Collections.Generic;
 using System.Text;
 
 namespace AIGenSeeSharpSuite.Backend.Services
@@ -91,29 +92,34 @@ namespace AIGenSeeSharpSuite.Backend.Services
                 var tree = CSharpSyntaxTree.ParseText(code);
                 
                 // Add necessary references
-                var references = new[]
+                var referenceList = new List<MetadataReference>
                 {
                     MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
                     MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
                     MetadataReference.CreateFromFile(typeof(System.Linq.Enumerable).Assembly.Location),
-                    MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).Assembly.Location),
-                    MetadataReference.CreateFromFile(Assembly.GetEntryAssembly()?.Location ?? "")
+                    MetadataReference.CreateFromFile(typeof(System.Threading.Tasks.Task).Assembly.Location)
                 };
-                
+
+                var entryAssembly = Assembly.GetEntryAssembly();
+                if (entryAssembly != null && !string.IsNullOrEmpty(entryAssembly.Location))
+                {
+                    referenceList.Add(MetadataReference.CreateFromFile(entryAssembly.Location));
+                }
+
                 // Add runtime references
                 var runtimeDirectory = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
-                references = references.Concat(new[]
+                referenceList.AddRange(new[]
                 {
                     MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Runtime.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Collections.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Linq.dll")),
                     MetadataReference.CreateFromFile(Path.Combine(runtimeDirectory, "System.Console.dll"))
-                }).ToArray();
-                
+                });
+
                 var compilation = CSharpCompilation.Create(
                     "GeneratedCode",
                     new[] { tree },
-                    references,
+                    referenceList,
                     new CSharpCompilationOptions(OutputKind.ConsoleApplication));
                 
                 using var ms = new MemoryStream();
